@@ -1,0 +1,23 @@
+# Symfony
+/app/var/
+/app/vendor/
+/app/.env.local
+/app/.env.local.php
+/app/.DS_Store
+
+# Docker volumes / logs
+*.log
+*.lock
+docker-compose.override.yml
+.env
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# Node/Yarn (si jamais tu fais du front)
+node_modules/
+
+# Fichier de memo
+memo.txt
