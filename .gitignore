@@ -13,7 +13,7 @@ docker-compose.override.yml
 docker-compose.yaml
 Dockerfile
 /.docker/
-/.env
+app\.env
 
 # IDEs
 .vscode/
