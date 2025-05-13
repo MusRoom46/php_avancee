@@ -10,6 +10,10 @@
 *.lock
 docker-compose.override.yml
 .env
+docker-compose.yaml
+Dockerfile
+/.docker/
+
 
 # IDEs
 .vscode/
