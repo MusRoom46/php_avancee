@@ -20,7 +20,9 @@
         "symfony/yaml": "7.2.*"
     },
     "require-dev": {
-      "symfony/maker-bundle": "^1.63"
+        "doctrine/doctrine-fixtures-bundle": "^4.1",
+        "fakerphp/faker": "^1.24",
+        "symfony/maker-bundle": "^1.63"
     },
     "config": {
         "allow-plugins": {
