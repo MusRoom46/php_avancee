@@ -9,7 +9,7 @@
 *.log
 *.lock
 docker-compose.override.yml
-.env
+/.env
 docker-compose.yaml
 Dockerfile
 /.docker/
