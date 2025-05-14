@@ -101,15 +101,23 @@ final class TweetController extends AbstractController
     #[Route('/api/tweets', name: 'api_tweets_create', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
+        $user = $this->getUser(); // Récupère l'utilisateur actuellement connecté
+
+        if (!$user) {
+            return $this->json(['error' => 'Utilisateur non authentifié'], 401);
+        }
+
         $data = json_decode($request->getContent(), true);
+
+        // Vérifie si le contenu du tweet est fourni
+        if (empty($data['content'])) {
+            return $this->json(['error' => 'Le contenu du tweet est requis'], 400);
+        }
 
         $tweet = new Tweet();
         $tweet->setContenu($data['content']);
         $tweet->setDate(new \DateTime());
-
-        // Récupère l'utilisateur
-        $user = this.getUser();
-        $tweet->setUser($defaultUser);
+        $tweet->setUser($user); // Associe l'utilisateur connecté au tweet
 
         $entityManager->persist($tweet);
         $entityManager->flush();
