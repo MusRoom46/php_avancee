@@ -36,6 +36,7 @@ security:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/register, roles: PUBLIC_ACCESS }
         - { path: ^/api/users, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api/tweets, roles: IS_AUTHENTICATED_FULLY }
 
 
 when@test:

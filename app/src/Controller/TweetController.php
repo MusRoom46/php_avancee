@@ -87,28 +87,23 @@ final class TweetController extends AbstractController
     #[Route('/api/tweets', name: 'api_tweets_create', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
+        $user = $this->getUser(); // Récupère l'utilisateur actuellement connecté
+
+        if (!$user) {
+            return $this->json(['error' => 'Utilisateur non authentifié'], 401);
+        }
+
         $data = json_decode($request->getContent(), true);
+
+        // Vérifie si le contenu du tweet est fourni
+        if (empty($data['content'])) {
+            return $this->json(['error' => 'Le contenu du tweet est requis'], 400);
+        }
 
         $tweet = new Tweet();
         $tweet->setContenu($data['content']);
         $tweet->setDate(new \DateTime());
-
-        // $user = $this->getUser(); // Récupère l'utilisateur connecté
-        // $tweet->setUser($user);
-
-        // Test avec un utilisateur par défaut en attendant l'authentification
-        // Décommenter la ligne ci-dessus et commenter celle ci-dessous lorsque 
-        // l'authentification sera en place
-        // Crée un utilisateur fictif
-        $defaultUser = new Users();
-        $defaultUser->setPseudo('DefaultUser');
-        $defaultUser->setEmail('default@example.com');
-        $defaultUser->setAvatar('default-avatar.png');
-        $defaultUser->setDateCreation(new \DateTime());
-        $defaultUser->setMdp('password'); // Ne pas stocker de mot de passe en clair dans une vraie application
-
-        $entityManager->persist($defaultUser);
-        $tweet->setUser($defaultUser);
+        $tweet->setUser($user); // Associe l'utilisateur connecté au tweet
 
         $entityManager->persist($tweet);
         $entityManager->flush();
