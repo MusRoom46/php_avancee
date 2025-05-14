@@ -63,7 +63,21 @@ final class TweetController extends AbstractController
                 'date_creation' => $tweet->getUser()->getDateCreation()->format('Y-m-d H:i:s'),
             ],
             'date' => $tweet->getDate()->format('Y-m-d H:i:s'),
-            'likes' => count($tweet->getLikes()),
+            'likes' => [
+                'count' => count($tweet->getComments()),
+                'likes' => array_map(fn($comment) => [
+                    'id' => $comment->getId(),
+                    'content' => $comment->getContenu(),
+                    'author' => [
+                        'id' => $comment->getUser()->getId(),
+                        'pseudo' => $comment->getUser()->getPseudo(),
+                        'email' => $comment->getUser()->getEmail(),
+                        'avatar' => $comment->getUser()->getAvatar(),
+                        'date_creation' => $comment->getUser()->getDateCreation()->format('Y-m-d H:i:s'),
+                    ],
+                    'date' => $comment->getDate()->format('Y-m-d H:i:s'),
+                ], $tweet->getComments()->toArray())
+            ],
             'comments' => [
                 'count' => count($tweet->getComments()),
                 'comments' => array_map(fn($comment) => [
@@ -93,21 +107,8 @@ final class TweetController extends AbstractController
         $tweet->setContenu($data['content']);
         $tweet->setDate(new \DateTime());
 
-        // $user = $this->getUser(); // Récupère l'utilisateur connecté
-        // $tweet->setUser($user);
-
-        // Test avec un utilisateur par défaut en attendant l'authentification
-        // Décommenter la ligne ci-dessus et commenter celle ci-dessous lorsque 
-        // l'authentification sera en place
-        // Crée un utilisateur fictif
-        $defaultUser = new Users();
-        $defaultUser->setPseudo('DefaultUser');
-        $defaultUser->setEmail('default@example.com');
-        $defaultUser->setAvatar('default-avatar.png');
-        $defaultUser->setDateCreation(new \DateTime());
-        $defaultUser->setMdp('password'); // Ne pas stocker de mot de passe en clair dans une vraie application
-
-        $entityManager->persist($defaultUser);
+        // Récupère l'utilisateur
+        $user = this.getUser();
         $tweet->setUser($defaultUser);
 
         $entityManager->persist($tweet);
@@ -121,7 +122,12 @@ final class TweetController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
-        $tweet->setContenu($data['content'] ?? $tweet->getContenu());
+        // Vérification des données
+        if (!isset($data['contenu']) || empty($data['contenu'])) {
+            return $this->json(['error' => 'Le "contenu" du tweet est requis'], 400);
+        }
+
+        $tweet->setContenu($data['contenu']);
         $entityManager->flush();
 
         return $this->json(['message' => 'Tweet mis à jour avec succès']);
