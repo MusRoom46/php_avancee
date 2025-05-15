@@ -1,0 +1,38 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: API Documentation
+            description: Description de l'API pour Tweettoast
+            version: 1.0.0
+        security:
+            -   bearerAuth: [ ]
+        components:
+            securitySchemes:
+                bearerAuth:
+                    type: http
+                    description: 'Value: Bearer {jwt}'
+                    name: Authorization
+                    in: header
+                    scheme: bearer
+                    bearerFormat: JWT
+
+
+        tags:
+            -   name: "Authentification"
+                description: "Endpoints liés à l'authentification de l'utilisateur (login, register, etc.)"
+            -   name: "Utilisateurs"
+                description: "Gestion des utilisateurs (lecture, modification, suppression)"
+            -   name: "Tweets"
+                description: "Endpoints pour créer, lire et gérer les tweets"
+            -   name: "Commentaires"
+                description: "Endpoints pour ajouter et gérer les commentaires des tweets"
+            -   name: "Likes"
+                description: "Endpoints pour liker ou unliker un tweet"
+            -   name: "Follow"
+                description: "Endpoints pour suivre ou arrêter de suivre un utilisateur"
+
+
+
+    areas: # to filter documented areas
+        path_patterns:
+            - ^/api(?!/doc$) # Accepts routes under /api except /api/doc

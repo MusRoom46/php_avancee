@@ -16,7 +16,6 @@ security:
             security: false
         main:
             lazy: true
-#            provider: users_in_memory
             stateless: true # Les APIs doivent être sans état
             provider: app_user_provider # Utilise le fournisseur ci-dessus
             jwt: ~ # Prise en charge des tokens JWT
@@ -35,8 +34,8 @@ security:
         # - { path: ^/profile, roles: ROLE_USER }
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/register, roles: PUBLIC_ACCESS }
-        - { path: ^/api/users, roles: IS_AUTHENTICATED_FULLY }
-        - { path: ^/api/tweets, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api/doc, roles: PUBLIC_ACCESS }
+        - { path: ^/api/, roles: IS_AUTHENTICATED_FULLY }
 
 
 when@test:
