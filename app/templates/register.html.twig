@@ -1,0 +1,19 @@
+```twig
+// filepath: \\wsl.localhost\Ubuntu\home\valbedet\php_avancee\app\templates\register.html.twig
+{% extends 'base.html.twig' %}
+
+{% block title %}Register - TweetToast{% endblock %}
+
+{% block body %}
+<h1>Register</h1>
+<form action="/api/register" method="POST">
+    <label for="pseudo">Pseudo:</label>
+    <input type="text" id="pseudo" name="pseudo" required>
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="mdp" required>
+    <button type="submit">Register</button>
+</form>
+<p>Already have an account? <a href="/login">Login here</a>.</p>
+{% endblock %}
