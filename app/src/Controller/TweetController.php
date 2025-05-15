@@ -28,7 +28,21 @@ final class TweetController extends AbstractController
                 'date_creation' => $tweet->getUser()->getDateCreation()->format('Y-m-d H:i:s'),
             ],
             'date' => $tweet->getDate()->format('Y-m-d H:i:s'),
-            'likes' => count($tweet->getLikes()),
+            'likes' => [
+                'count' => count($tweet->getComments()),
+                'likes' => array_map(fn($comment) => [
+                    'id' => $comment->getId(),
+                    'content' => $comment->getContenu(),
+                    'author' => [
+                        'id' => $comment->getUser()->getId(),
+                        'pseudo' => $comment->getUser()->getPseudo(),
+                        'email' => $comment->getUser()->getEmail(),
+                        'avatar' => $comment->getUser()->getAvatar(),
+                        'date_creation' => $comment->getUser()->getDateCreation()->format('Y-m-d H:i:s'),
+                    ],
+                    'date' => $comment->getDate()->format('Y-m-d H:i:s'),
+                ], $tweet->getComments()->toArray())
+            ],
             'comments' => [
                 'count' => count($tweet->getComments()),
                 'comments' => array_map(fn($comment) => [
@@ -49,10 +63,59 @@ final class TweetController extends AbstractController
         return $this->json($data);
     }
 
-    #[Route('/api/tweets/{id}', name: 'api_tweet_show', methods: ['GET'])]
+    #[Route('/api/tweets/{id}', name: 'api_tweet_show_by_id', methods: ['GET'])]
     public function show(Tweet $tweet): JsonResponse
     {
         $data = [
+            'id' => $tweet->getId(),
+            'content' => $tweet->getContenu(),
+            'author' => [
+                'id' => $tweet->getUser()->getId(),
+                'pseudo' => $tweet->getUser()->getPseudo(),
+                'email' => $tweet->getUser()->getEmail(),
+                'avatar' => $tweet->getUser()->getAvatar(),
+                'date_creation' => $tweet->getUser()->getDateCreation()->format('Y-m-d H:i:s'),
+            ],
+            'date' => $tweet->getDate()->format('Y-m-d H:i:s'),
+            'likes' => [
+                'count' => count($tweet->getLikes()),
+                'likes' => array_map(fn($like) => [
+                    'id' => $like->getId(),
+                    'author' => [
+                        'id' => $like->getUser()->getId(),
+                        'pseudo' => $like->getUser()->getPseudo(),
+                        'email' => $like->getUser()->getEmail(),
+                        'avatar' => $like->getUser()->getAvatar(),
+                        'date_creation' => $like->getUser()->getDateCreation()->format('Y-m-d H:i:s'),
+                    ],
+                    'date' => $like->getDate()->format('Y-m-d H:i:s'),
+                ], $tweet->getLikes()->toArray())
+            ],
+            'comments' => [
+                'count' => count($tweet->getComments()),
+                'comments' => array_map(fn($comment) => [
+                    'id' => $comment->getId(),
+                    'content' => $comment->getContenu(),
+                    'author' => [
+                        'id' => $comment->getUser()->getId(),
+                        'pseudo' => $comment->getUser()->getPseudo(),
+                        'email' => $comment->getUser()->getEmail(),
+                        'avatar' => $comment->getUser()->getAvatar(),
+                        'date_creation' => $comment->getUser()->getDateCreation()->format('Y-m-d H:i:s'),
+                    ],
+                    'date' => $comment->getDate()->format('Y-m-d H:i:s'),
+                ], $tweet->getComments()->toArray())
+            ]
+        ];
+
+        return $this->json($data);
+    }
+
+    #[Route('/api/tweets/users/{id}', name: 'api_tweet_show', methods: ['GET'])]
+    public function showTweetByUser(Users $user): JsonResponse
+    {
+        $tweets = $user->getTweets()->toArray();
+        $data = array_map(fn(Tweet $tweet) => [
             'id' => $tweet->getId(),
             'content' => $tweet->getContenu(),
             'author' => [
@@ -93,8 +156,7 @@ final class TweetController extends AbstractController
                     'date' => $comment->getDate()->format('Y-m-d H:i:s'),
                 ], $tweet->getComments()->toArray())
             ]
-        ];
-
+        ], $tweets);
         return $this->json($data);
     }
 
@@ -118,6 +180,7 @@ final class TweetController extends AbstractController
         $tweet->setContenu($data['content']);
         $tweet->setDate(new \DateTime());
         $tweet->setUser($user); // Associe l'utilisateur connecté au tweet
+        $user->addTweet($tweet); // Ajoute le tweet à l'utilisateur
 
         $entityManager->persist($tweet);
         $entityManager->flush();
@@ -125,25 +188,12 @@ final class TweetController extends AbstractController
         return $this->json(['message' => 'Tweet créé avec succès'], 201);
     }
 
-    #[Route('/api/tweets/{id}', name: 'api_tweets_update', methods: ['PUT'])]
-    public function update(Request $request, Tweet $tweet, EntityManagerInterface $entityManager): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-
-        // Vérification des données
-        if (!isset($data['contenu']) || empty($data['contenu'])) {
-            return $this->json(['error' => 'Le "contenu" du tweet est requis'], 400);
-        }
-
-        $tweet->setContenu($data['contenu']);
-        $entityManager->flush();
-
-        return $this->json(['message' => 'Tweet mis à jour avec succès']);
-    }
-
     #[Route('/api/tweets/{id}', name: 'api_tweets_delete', methods: ['DELETE'])]
     public function delete(Tweet $tweet, EntityManagerInterface $entityManager): JsonResponse
     {
+        // Vérification de l'utilisateur
+        $user = $this->getUser();
+        
         $entityManager->remove($tweet);
         $entityManager->flush();
 

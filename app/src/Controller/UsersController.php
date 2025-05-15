@@ -29,9 +29,78 @@ final class UsersController extends AbstractController
         return $this->json($data);
     }
 
+    #[Route('/api/users/{id}/all', name: 'api_users_show_all_info', methods: ['GET'])]
+    public function showAllInfoUser(Users $user): JsonResponse
+    {
+        // Vérifier si l'utilisateur est correct
+        if (!$user) {
+            return $this->json(['message' => 'Utilisateur non trouvé'], 404);
+        }
+        $data = [
+            'id' => $user->getId(),
+            'pseudo' => $user->getPseudo(),
+            'email' => $user->getEmail(),
+            'avatar' => $user->getAvatar(),
+            'date_creation' => $user->getDateCreation()->format('Y-m-d H:i:s'),
+            'tweets' => array_map(fn($tweet) => [
+                'id' => $tweet->getId(),
+                'content' => $tweet->getContenu(),
+                'date' => $tweet->getDate()->format('Y-m-d H:i:s'),
+            ], $user->getTweets()->toArray()),
+            'likes' => array_map(fn($like) => [
+                'id' => $like->getId(),
+                'date' => $like->getDate()->format('Y-m-d H:i:s'),
+                'tweet' => [
+                    'id' => $like->getTweet()->getId(),
+                    'content' => $like->getTweet()->getContenu(),
+                    'date' => $like->getTweet()->getDate()->format('Y-m-d H:i:s'),
+                ],
+            ], $user->getLikes()->toArray()),
+            'comments' => array_map(fn($comment) => [
+                'id' => $comment->getId(),
+                'content' => $comment->getContenu(),
+                'date' => $comment->getDate()->format('Y-m-d H:i:s'),
+                'tweet' => [
+                    'id' => $comment->getTweet()->getId(),
+                    'content' => $comment->getTweet()->getContenu(),
+                    'date' => $comment->getTweet()->getDate()->format('Y-m-d H:i:s'),
+                ],
+            ], $user->getComments()->toArray()),
+            'follows' => array_map(fn($follow) => [
+                'id' => $follow->getId(),
+                'date' => $follow->getDate()->format('Y-m-d H:i:s'),
+                'user_suivi' => [
+                    'id' => $follow->getUserSuivi()->getId(),
+                    'pseudo' => $follow->getUserSuivi()->getPseudo(),
+                    'email' => $follow->getUserSuivi()->getEmail(),
+                ],
+            ], $user->getFollows()->toArray()),
+            'followers' => array_map(fn($follower) => [
+                'id' => $follower->getId(),
+                'date' => $follower->getDate()->format('Y-m-d H:i:s'),
+                'user' => [
+                    'id' => $follower->getUser()->getId(),
+                    'pseudo' => $follower->getUser()->getPseudo(),
+                    'email' => $follower->getUser()->getEmail(),
+                ],
+            ], array_filter($user->getFollowers()->toArray(), fn($follow) => $follow->getUserSuivi() === $user)),
+            'tweets_count' => count($user->getTweets()),
+            'likes_count' => count($user->getLikes()),
+            'comments_count' => count($user->getComments()),
+            'follows_count' => count($user->getFollows()),
+            'followers_count' => count($user->getFollowers())
+        ];
+
+        return $this->json($data);
+    }
+
     #[Route('/api/users/{id}', name: 'api_users_show', methods: ['GET'])]
     public function show(Users $user): JsonResponse
     {
+        // Vérifier si l'utilisateur est correct
+        if (!$user) {
+            return $this->json(['message' => 'Utilisateur non trouvé'], 404);
+        }
         $data = [
             'id' => $user->getId(),
             'pseudo' => $user->getPseudo(),
