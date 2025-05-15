@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Controller;
+namespace App\API\Controller;
 
-use App\Entity\Users;
-use App\Entity\Tweet;
-use App\Repository\TweetRepository;
+use App\API\Entity\Tweet;
+use App\API\Entity\Users;
+use App\API\Repository\TweetRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use OpenApi\Attributes as OA;
 
 final class TweetController extends AbstractController
 {

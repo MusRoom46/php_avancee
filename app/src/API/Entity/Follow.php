@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Entity;
+namespace App\API\Entity;
 
-use App\Repository\FollowRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]

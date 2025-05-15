@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Entity;
+namespace App\API\Entity;
 
-use App\Repository\LikesRepository;
+use App\API\Repository\CommentRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: LikesRepository::class)]
-class Likes
+#[ORM\Entity(repositoryClass: CommentRepository::class)]
+class Comment
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -16,11 +16,14 @@ class Likes
     #[ORM\Column]
     private ?\DateTime $date = null;
 
-    #[ORM\ManyToOne(inversedBy: 'likes')]
+    #[ORM\Column(length: 255)]
+    private ?string $contenu = null;
+
+    #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Tweet $tweet = null;
 
-    #[ORM\ManyToOne(inversedBy: 'likes')]
+    #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Users $user = null;
 
@@ -37,6 +40,18 @@ class Likes
     public function setDate(\DateTime $date): static
     {
         $this->date = $date;
+
+        return $this;
+    }
+
+    public function getContenu(): ?string
+    {
+        return $this->contenu;
+    }
+
+    public function setContenu(string $contenu): static
+    {
+        $this->contenu = $contenu;
 
         return $this;
     }

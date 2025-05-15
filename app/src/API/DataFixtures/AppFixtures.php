@@ -1,12 +1,12 @@
 <?php
 
-namespace App\DataFixtures;
+namespace App\API\DataFixtures;
 
-use App\Entity\Users;
-use App\Entity\Tweet;
-use App\Entity\Comment;
-use App\Entity\Likes;
-use App\Entity\Follow;
+use App\API\Entity\Comment;
+use App\API\Entity\Follow;
+use App\API\Entity\Likes;
+use App\API\Entity\Tweet;
+use App\API\Entity\Users;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
