@@ -16,7 +16,7 @@ final class LikesController extends AbstractController
     #[Route('/api/tweets/{id}/likes', name: 'api_tweet_likes', methods: ['GET'])]
     #[OA\Get(
         path: "/api/tweets/{id}/likes",
-        description: "Retourne la liste des likes pour un tweet spécifique",
+        description: "Retourne tous les likes d'un tweet spécifique",
         summary: "Récupère les likes d'un tweet",
         tags: ["Likes"],
         parameters: [
@@ -37,26 +37,18 @@ final class LikesController extends AbstractController
                     items: new OA\Items(
                         properties: [
                             new OA\Property(property: "id", type: "integer"),
-                            new OA\Property(
-                                property: "user",
-                                properties: [
-                                    new OA\Property(property: "id", type: "integer"),
-                                    new OA\Property(property: "pseudo", type: "string"),
-                                    new OA\Property(property: "email", type: "string"),
-                                    new OA\Property(property: "avatar", type: "string"),
-                                    new OA\Property(property: "date_creation", type: "string", format: "date-time")
-                                ],
-                                type: "object"
-                            ),
-                            new OA\Property(
-                                property: "tweet",
-                                properties: [
-                                    new OA\Property(property: "id", type: "integer"),
-                                    new OA\Property(property: "content", type: "string"),
-                                    new OA\Property(property: "date", type: "string", format: "date-time")
-                                ],
-                                type: "object"
-                            ),
+                            new OA\Property(property: "user", type: "object", properties: [
+                                new OA\Property(property: "id", type: "integer"),
+                                new OA\Property(property: "pseudo", type: "string"),
+                                new OA\Property(property: "email", type: "string"),
+                                new OA\Property(property: "avatar", type: "string"),
+                                new OA\Property(property: "date_creation", type: "string", format: "date-time")
+                            ]),
+                            new OA\Property(property: "tweet", type: "object", properties: [
+                                new OA\Property(property: "id", type: "integer"),
+                                new OA\Property(property: "content", type: "string"),
+                                new OA\Property(property: "date", type: "string", format: "date-time")
+                            ]),
                             new OA\Property(property: "date", type: "string", format: "date-time")
                         ],
                         type: "object"
@@ -98,11 +90,8 @@ final class LikesController extends AbstractController
     #[Route('/api/tweets/{id}/like', name: 'api_tweet_like', methods: ['POST'])]
     #[OA\Post(
         path: "/api/tweets/{id}/like",
-        description: "Permet d'ajouter ou de retirer un like sur un tweet spécifique",
-        summary: "Ajoute ou retire un like sur un tweet",
-        security: [
-            ["bearerAuth" => []]
-        ],
+        description: "Permet à un utilisateur authentifié de liker ou unliker un tweet",
+        summary: "Liker ou unliker un tweet",
         tags: ["Likes"],
         parameters: [
             new OA\Parameter(
@@ -120,7 +109,7 @@ final class LikesController extends AbstractController
                 content: new OA\JsonContent(
                     properties: [
                         new OA\Property(property: "message", type: "string", example: "Tweet liké avec succès"),
-                        new OA\Property(property: "likes", description: "Nombre total de likes sur le tweet", type: "integer")
+                        new OA\Property(property: "likes", type: "integer", example: 5)
                     ],
                     type: "object"
                 )
