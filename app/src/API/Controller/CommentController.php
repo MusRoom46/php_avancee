@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Controller;
+namespace App\API\Controller;
 
-use App\Entity\Comment;
-use App\Entity\Tweet;
-use App\Repository\CommentRepository;
+use App\API\Entity\Comment;
+use App\API\Entity\Tweet;
+use App\API\Repository\CommentRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use OpenApi\Attributes as OA;
 
 final class CommentController extends AbstractController
 {
@@ -278,7 +278,7 @@ final class CommentController extends AbstractController
         $comment = new Comment();
         $comment->setDate(new \DateTime());
         $comment->setContenu($data['contenu']);
-        $comment->setTweet($entityManager->getReference('App\Entity\Tweet', $data['tweet_id']));
+        $comment->setTweet($entityManager->getReference('App\API\Entity\Tweet', $data['tweet_id']));
 
         // Récupère l'utilisateur
         $user = $this->getUser();

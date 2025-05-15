@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Entity;
+namespace App\API\Entity;
 
-use App\Repository\TweetRepository;
+use App\API\Repository\TweetRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;

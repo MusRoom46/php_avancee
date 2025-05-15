@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Controller;
+namespace App\API\Controller;
 
-use App\Entity\Follow;
-use App\Repository\FollowRepository;
+use App\API\Entity\Follow;
+use App\API\Repository\FollowRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use OpenApi\Attributes as OA;
 
 final class FollowController extends AbstractController
 {
@@ -117,7 +117,7 @@ final class FollowController extends AbstractController
             return $this->json(['error' => 'Les IDs des utilisateurs sont requis'], 400);
         }
 
-        $userSuivi = $entityManager->getReference('App\Entity\Users', $data['user_suivi_id']);
+        $userSuivi = $entityManager->getReference('App\API\Entity\Users', $data['user_suivi_id']);
 
         $follow = new Follow();
         $follow->setDate(new \DateTime());

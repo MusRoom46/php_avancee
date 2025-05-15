@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Controller;
+namespace App\API\Controller;
 
-use App\Entity\Users;
-use App\Repository\UsersRepository;
+use App\API\Entity\Users;
+use App\API\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use OpenApi\Attributes as OA;
 
 final class UsersController extends AbstractController
 {
@@ -178,6 +178,7 @@ final class UsersController extends AbstractController
         path: "/api/register",
         description: "Permet de créer un compte utilisateur",
         summary: "Inscrit un nouvel utilisateur",
+        security: [],
         requestBody: new OA\RequestBody(
             description: "Données pour l'enregistrement d'un utilisateur",
             required: true,
@@ -220,6 +221,7 @@ final class UsersController extends AbstractController
         path: "/api/login",
         description: "Permet à un utilisateur de se connecter avec son email et son mot de passe, et retourne un token JWT s'il est valide.",
         summary: "Connexion utilisateur et génération de JWT",
+        security: [],
         requestBody: new OA\RequestBody(
             description: "Données pour la connexion d'un utilisateur",
             required: true,
