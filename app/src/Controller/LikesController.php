@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Likes;
-use App\Entity\Users;
 use App\Entity\Tweet;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

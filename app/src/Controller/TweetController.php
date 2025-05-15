@@ -17,7 +17,7 @@ final class TweetController extends AbstractController
     #[Route('/api/tweets', name: 'api_tweets_list', methods: ['GET'])]
     #[OA\Get(
         path: "/api/tweets",
-        description: "Retourne un tableau des tweets avec leurs informations détaillées",
+        description: "Retourne un tableau des tweets avec leurs informations",
         summary: "Récupère la liste des tweets",
         tags: ["Tweets"],
         responses: [
@@ -30,49 +30,16 @@ final class TweetController extends AbstractController
                         properties: [
                             new OA\Property(property: "id", type: "integer"),
                             new OA\Property(property: "content", type: "string"),
-                            new OA\Property(
-                                property: "author",
-                                properties: [
-                                    new OA\Property(property: "id", type: "integer"),
-                                    new OA\Property(property: "pseudo", type: "string"),
-                                    new OA\Property(property: "email", type: "string"),
-                                    new OA\Property(property: "avatar", type: "string"),
-                                    new OA\Property(property: "date_creation", type: "string", format: "date-time")
-                                ],
-                                type: "object"
-                            ),
+                            new OA\Property(property: "author", type: "object", properties: [
+                                new OA\Property(property: "id", type: "integer"),
+                                new OA\Property(property: "pseudo", type: "string"),
+                                new OA\Property(property: "email", type: "string"),
+                                new OA\Property(property: "avatar", type: "string"),
+                                new OA\Property(property: "date_creation", type: "string", format: "date-time")
+                            ]),
                             new OA\Property(property: "date", type: "string", format: "date-time"),
-                            new OA\Property(property: "likes", type: "integer"),
-                            new OA\Property(
-                                property: "comments",
-                                properties: [
-                                    new OA\Property(property: "count", type: "integer"),
-                                    new OA\Property(
-                                        property: "comments",
-                                        type: "array",
-                                        items: new OA\Items(
-                                            properties: [
-                                                new OA\Property(property: "id", type: "integer"),
-                                                new OA\Property(property: "content", type: "string"),
-                                                new OA\Property(
-                                                    property: "author",
-                                                    properties: [
-                                                        new OA\Property(property: "id", type: "integer"),
-                                                        new OA\Property(property: "pseudo", type: "string"),
-                                                        new OA\Property(property: "email", type: "string"),
-                                                        new OA\Property(property: "avatar", type: "string"),
-                                                        new OA\Property(property: "date_creation", type: "string", format: "date-time")
-                                                    ],
-                                                    type: "object"
-                                                ),
-                                                new OA\Property(property: "date", type: "string", format: "date-time")
-                                            ],
-                                            type: "object"
-                                        )
-                                    )
-                                ],
-                                type: "object"
-                            )
+                            new OA\Property(property: "likes", type: "object"),
+                            new OA\Property(property: "comments", type: "object")
                         ],
                         type: "object"
                     )
@@ -130,6 +97,48 @@ final class TweetController extends AbstractController
     }
 
     #[Route('/api/tweets/{id}', name: 'api_tweet_show_by_id', methods: ['GET'])]
+    #[OA\Get(
+        path: "/api/tweets/{id}",
+        description: "Retourne les informations d'un tweet spécifique en fonction de l'ID",
+        summary: "Récupère les détails d'un tweet",
+        tags: ["Tweets"],
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                description: "Identifiant unique du tweet",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "integer")
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Détails du tweet",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "id", type: "integer"),
+                        new OA\Property(property: "content", type: "string"),
+                        new OA\Property(property: "author", type: "object", properties: [
+                            new OA\Property(property: "id", type: "integer"),
+                            new OA\Property(property: "pseudo", type: "string"),
+                            new OA\Property(property: "email", type: "string"),
+                            new OA\Property(property: "avatar", type: "string"),
+                            new OA\Property(property: "date_creation", type: "string", format: "date-time")
+                        ]),
+                        new OA\Property(property: "date", type: "string", format: "date-time"),
+                        new OA\Property(property: "likes", type: "object"),
+                        new OA\Property(property: "comments", type: "object")
+                    ],
+                    type: "object"
+                )
+            ),
+            new OA\Response(
+                response: 404,
+                description: "Tweet non trouvé"
+            )
+        ]
+    )]
     public function show(Tweet $tweet): JsonResponse
     {
         $data = [
@@ -178,6 +187,51 @@ final class TweetController extends AbstractController
     }
 
     #[Route('/api/tweets/users/{id}', name: 'api_tweet_show', methods: ['GET'])]
+    #[OA\Get(
+        path: "/api/tweets/users/{id}",
+        description: "Retourne tous les tweets d'un utilisateur spécifique",
+        summary: "Récupère les tweets d'un utilisateur",
+        tags: ["Tweets"],
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                description: "Identifiant unique de l'utilisateur",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "integer")
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Liste des tweets de l'utilisateur",
+                content: new OA\JsonContent(
+                    type: "array",
+                    items: new OA\Items(
+                        properties: [
+                            new OA\Property(property: "id", type: "integer"),
+                            new OA\Property(property: "content", type: "string"),
+                            new OA\Property(property: "author", properties: [
+                                new OA\Property(property: "id", type: "integer"),
+                                new OA\Property(property: "pseudo", type: "string"),
+                                new OA\Property(property: "email", type: "string"),
+                                new OA\Property(property: "avatar", type: "string"),
+                                new OA\Property(property: "date_creation", type: "string", format: "date-time")
+                            ], type: "object"),
+                            new OA\Property(property: "date", type: "string", format: "date-time"),
+                            new OA\Property(property: "likes", type: "object"),
+                            new OA\Property(property: "comments", type: "object")
+                        ],
+                        type: "object"
+                    )
+                )
+            ),
+            new OA\Response(
+                response: 404,
+                description: "Utilisateur non trouvé"
+            )
+        ]
+    )]
     public function showTweetByUser(Users $user): JsonResponse
     {
         $tweets = $user->getTweets()->toArray();
@@ -230,13 +284,13 @@ final class TweetController extends AbstractController
     #[OA\Post(
         path: "/api/tweets",
         description: "Permet de créer un nouveau tweet",
-        summary: "Crée un nouveau tweet",
+        summary: "Création d'un tweet",
         requestBody: new OA\RequestBody(
-            description: "Données du tweet à créer",
+            description: "Données pour la création d'un tweet",
             required: true,
             content: new OA\JsonContent(
                 properties: [
-                    new OA\Property(property: "content", description: "Contenu du tweet", type: "string")
+                    new OA\Property(property: "content", type: "string", example: "Contenu du tweet")
                 ],
                 type: "object"
             )
@@ -255,23 +309,11 @@ final class TweetController extends AbstractController
             ),
             new OA\Response(
                 response: 400,
-                description: "Données invalides ou incomplètes",
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: "error", type: "string", example: "Le contenu du tweet est requis")
-                    ],
-                    type: "object"
-                )
+                description: "Données invalides"
             ),
             new OA\Response(
                 response: 401,
-                description: "Utilisateur non authentifié",
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: "error", type: "string", example: "Utilisateur non authentifié")
-                    ],
-                    type: "object"
-                )
+                description: "Utilisateur non authentifié"
             )
         ]
     )]
@@ -320,7 +362,7 @@ final class TweetController extends AbstractController
         responses: [
             new OA\Response(
                 response: 200,
-                description: "Suppression réussie du tweet",
+                description: "Tweet supprimé avec succès",
                 content: new OA\JsonContent(
                     properties: [
                         new OA\Property(property: "message", type: "string", example: "Tweet supprimé avec succès")
@@ -336,9 +378,6 @@ final class TweetController extends AbstractController
     )]
     public function delete(Tweet $tweet, EntityManagerInterface $entityManager): JsonResponse
     {
-        // Vérification de l'utilisateur
-        $user = $this->getUser();
-
         $entityManager->remove($tweet);
         $entityManager->flush();
 
