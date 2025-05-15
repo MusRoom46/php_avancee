@@ -138,9 +138,7 @@ final class LikesController extends AbstractController
     )]
     public function like(Tweet $tweet, EntityManagerInterface $entityManager, Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-
-        // Récupère l'utilisateur
+        // Récupère l'utilisateur connecté
         $user = $this->getUser();
 
         // Vérifie si l'utilisateur a déjà liké ce tweet
@@ -155,6 +153,10 @@ final class LikesController extends AbstractController
         if ($existingLike) {
             // Si un like existe, on le supprime
             $tweet->getLikes()->removeElement($existingLike);
+            $tweet->removeLike($existingLike);
+            $user->removeLike($existingLike);
+            $entityManager->persist($tweet);
+            $entityManager->persist($user);
             $entityManager->remove($existingLike);
             $entityManager->flush();
 
@@ -165,6 +167,10 @@ final class LikesController extends AbstractController
             $like->setTweet($tweet);
             $like->setUser($user);
             $like->setDate(new \DateTime());
+            $tweet->addLike($like);
+            $user->addLike($like);
+            $entityManager->persist($tweet);
+            $entityManager->persist($user);
 
             $entityManager->persist($like);
             $entityManager->flush();

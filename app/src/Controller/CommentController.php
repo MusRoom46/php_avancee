@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Comment;
+use App\Entity\Tweet;
 use App\Repository\CommentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -162,6 +163,37 @@ final class CommentController extends AbstractController
         return $this->json($data);
     }
 
+    #[Route('/api/tweets/{id}/comments', name: 'api_comments_by_tweet', methods: ['GET'])]
+    public function showByTweet(Tweet $tweet): JsonResponse
+    {
+        $data = [
+            'id' => $tweet->getId(),
+            'content' => $tweet->getContenu(),
+            'date' => $tweet->getDate()->format('Y-m-d H:i:s'),
+            'comments' => array_map(fn(Comment $comment) => [
+                'id' => $comment->getId(),
+                'contenu' => $comment->getContenu(),
+                'date' => $comment->getDate()->format('Y-m-d H:i:s'),
+                'user' => [
+                    'id' => $comment->getUser()->getId(),
+                    'pseudo' => $comment->getUser()->getPseudo(),
+                    'email' => $comment->getUser()->getEmail(),
+                    'avatar' => $comment->getUser()->getAvatar(),
+                    'date_creation' => $comment->getUser()->getDateCreation()->format('Y-m-d H:i:s'),
+                ],
+            ], $tweet->getComments()->toArray()),
+            'user' => [
+                'id' => $tweet->getUser()->getId(),
+                'pseudo' => $tweet->getUser()->getPseudo(),
+                'email' => $tweet->getUser()->getEmail(),
+                'avatar' => $tweet->getUser()->getAvatar(),
+                'date_creation' => $tweet->getUser()->getDateCreation()->format('Y-m-d H:i:s'),
+            ], $tweet->getUser(),
+        ];
+
+        return $this->json($data);
+    }
+
     #[Route('/api/comments', name: 'api_comments_create', methods: ['POST'])]
     #[OA\Post(
         path: "/api/comments",
@@ -229,73 +261,6 @@ final class CommentController extends AbstractController
         $entityManager->flush();
 
         return $this->json(['message' => 'Commentaire créé avec succès'], 201);
-    }
-
-    #[Route('/api/comments/{id}', name: 'api_comments_update', methods: ['PUT'])]
-    #[OA\Put(
-        path: "/api/comments/{id}",
-        description: "Permet de mettre à jour un commentaire existant",
-        summary: "Met à jour un commentaire",
-        requestBody: new OA\RequestBody(
-            description: "Données du commentaire à mettre à jour",
-            required: true,
-            content: new OA\JsonContent(
-                properties: [
-                    new OA\Property(property: "contenu", description: "Nouveau contenu du commentaire", type: "string")
-                ],
-                type: "object"
-            )
-        ),
-        tags: ["Commentaires"],
-        parameters: [
-            new OA\Parameter(
-                name: "id",
-                description: "Identifiant unique du commentaire à mettre à jour",
-                in: "path",
-                required: true,
-                schema: new OA\Schema(type: "integer")
-            )
-        ],
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: "Commentaire mis à jour avec succès",
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: "message", type: "string", example: "Commentaire mis à jour avec succès")
-                    ],
-                    type: "object"
-                )
-            ),
-            new OA\Response(
-                response: 400,
-                description: "Données de mise à jour non valides",
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: "error", type: "string", example: "Le \"contenu\" du commentaire est requis")
-                    ],
-                    type: "object"
-                )
-            ),
-            new OA\Response(
-                response: 404,
-                description: "Commentaire non trouvé"
-            )
-        ]
-    )]
-    public function update(Request $request, Comment $comment, EntityManagerInterface $entityManager): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-
-        // Vérification des données
-        if (!isset($data['contenu']) || empty($data['contenu'])) {
-            return $this->json(['error' => 'Le "contenu" du commentaire est requis'], 400);
-        }
-
-        $comment->setContenu($data['contenu']);
-        $entityManager->flush();
-
-        return $this->json(['message' => 'Commentaire mis à jour avec succès']);
     }
 
     #[Route('/api/comments/{id}', name: 'api_comments_delete', methods: ['DELETE'])]

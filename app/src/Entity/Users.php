@@ -56,6 +56,12 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Follow::class, mappedBy: 'user', orphanRemoval: true)]
     private Collection $follows;
 
+    /**
+     * @var Collection<int, Follower>
+     */
+    #[ORM\OneToMany(targetEntity: Follow::class, mappedBy: 'userSuivi', orphanRemoval: true)]
+    private Collection $followers;
+
     public function __construct()
     {
         $this->tweets = new ArrayCollection();
@@ -238,6 +244,33 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     public function removeFollow(Follow $follow): static
+    {
+        if ($this->follows->removeElement($follow)) {
+            // set the owning side to null (unless already changed)
+            if ($follow->getUser() === $this) {
+                $follow->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getFollowers(): Collection
+    {
+        return $this->followers; // Assurez-vous que $followers est bien défini dans votre entité
+    }
+
+    public function addFollower(Follow $follow): static
+    {
+        if (!$this->follows->contains($follow)) {
+            $this->follows->add($follow);
+            $follow->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFollower(Follow $follow): static
     {
         if ($this->follows->removeElement($follow)) {
             // set the owning side to null (unless already changed)
