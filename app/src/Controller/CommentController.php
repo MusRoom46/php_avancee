@@ -17,7 +17,7 @@ final class CommentController extends AbstractController
     #[Route('/api/comments', name: 'api_comments_list', methods: ['GET'])]
     #[OA\Get(
         path: "/api/comments",
-        description: "Retourne un tableau des commentaires avec leurs informations détaillées",
+        description: "Retourne un tableau des commentaires avec leurs informations",
         summary: "Récupère la liste des commentaires",
         tags: ["Commentaires"],
         responses: [
@@ -31,27 +31,19 @@ final class CommentController extends AbstractController
                             new OA\Property(property: "id", type: "integer"),
                             new OA\Property(property: "date", type: "string", format: "date-time"),
                             new OA\Property(property: "contenu", type: "string"),
-                            new OA\Property(
-                                property: "tweet",
-                                properties: [
-                                    new OA\Property(property: "id", type: "integer"),
-                                    new OA\Property(property: "content", type: "string"),
-                                    new OA\Property(property: "date", type: "string", format: "date-time"),
-                                    new OA\Property(property: "likes", type: "integer")
-                                ],
-                                type: "object"
-                            ),
-                            new OA\Property(
-                                property: "user",
-                                properties: [
-                                    new OA\Property(property: "id", type: "integer"),
-                                    new OA\Property(property: "pseudo", type: "string"),
-                                    new OA\Property(property: "email", type: "string"),
-                                    new OA\Property(property: "avatar", type: "string"),
-                                    new OA\Property(property: "date_creation", type: "string", format: "date-time")
-                                ],
-                                type: "object"
-                            )
+                            new OA\Property(property: "tweet", type: "object", properties: [
+                                new OA\Property(property: "id", type: "integer"),
+                                new OA\Property(property: "content", type: "string"),
+                                new OA\Property(property: "date", type: "string", format: "date-time"),
+                                new OA\Property(property: "likes", type: "integer")
+                            ]),
+                            new OA\Property(property: "user", type: "object", properties: [
+                                new OA\Property(property: "id", type: "integer"),
+                                new OA\Property(property: "pseudo", type: "string"),
+                                new OA\Property(property: "email", type: "string"),
+                                new OA\Property(property: "avatar", type: "string"),
+                                new OA\Property(property: "date_creation", type: "string", format: "date-time")
+                            ])
                         ],
                         type: "object"
                     )
@@ -87,7 +79,7 @@ final class CommentController extends AbstractController
     #[Route('/api/comments/{id}', name: 'api_comments_show', methods: ['GET'])]
     #[OA\Get(
         path: "/api/comments/{id}",
-        description: "Retourne les informations détaillées d'un commentaire spécifique",
+        description: "Retourne les informations d'un commentaire spécifique en fonction de l'ID",
         summary: "Récupère les détails d'un commentaire",
         tags: ["Commentaires"],
         parameters: [
@@ -108,27 +100,19 @@ final class CommentController extends AbstractController
                         new OA\Property(property: "id", type: "integer"),
                         new OA\Property(property: "date", type: "string", format: "date-time"),
                         new OA\Property(property: "contenu", type: "string"),
-                        new OA\Property(
-                            property: "tweet",
-                            properties: [
-                                new OA\Property(property: "id", type: "integer"),
-                                new OA\Property(property: "content", type: "string"),
-                                new OA\Property(property: "date", type: "string", format: "date-time"),
-                                new OA\Property(property: "likes", type: "integer")
-                            ],
-                            type: "object"
-                        ),
-                        new OA\Property(
-                            property: "user",
-                            properties: [
-                                new OA\Property(property: "id", type: "integer"),
-                                new OA\Property(property: "pseudo", type: "string"),
-                                new OA\Property(property: "email", type: "string"),
-                                new OA\Property(property: "avatar", type: "string"),
-                                new OA\Property(property: "date_creation", type: "string", format: "date-time")
-                            ],
-                            type: "object"
-                        )
+                        new OA\Property(property: "tweet", type: "object", properties: [
+                            new OA\Property(property: "id", type: "integer"),
+                            new OA\Property(property: "content", type: "string"),
+                            new OA\Property(property: "date", type: "string", format: "date-time"),
+                            new OA\Property(property: "likes", type: "integer")
+                        ]),
+                        new OA\Property(property: "user", type: "object", properties: [
+                            new OA\Property(property: "id", type: "integer"),
+                            new OA\Property(property: "pseudo", type: "string"),
+                            new OA\Property(property: "email", type: "string"),
+                            new OA\Property(property: "avatar", type: "string"),
+                            new OA\Property(property: "date_creation", type: "string", format: "date-time")
+                        ])
                     ],
                     type: "object"
                 )
@@ -164,6 +148,61 @@ final class CommentController extends AbstractController
     }
 
     #[Route('/api/tweets/{id}/comments', name: 'api_comments_by_tweet', methods: ['GET'])]
+    #[OA\Get(
+        path: "/api/tweets/{id}/comments",
+        description: "Retourne tous les commentaires d'un tweet spécifique",
+        summary: "Récupère les commentaires d'un tweet",
+        tags: ["Commentaires", "Tweets"],
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                description: "Identifiant unique du tweet",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "integer")
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Tweet avec ses commentaires",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "id", type: "integer"),
+                        new OA\Property(property: "content", type: "string"),
+                        new OA\Property(property: "date", type: "string", format: "date-time"),
+                        new OA\Property(property: "comments", type: "array", items: new OA\Items(
+                            properties: [
+                                new OA\Property(property: "id", type: "integer"),
+                                new OA\Property(property: "contenu", type: "string"),
+                                new OA\Property(property: "date", type: "string", format: "date-time"),
+                                new OA\Property(property: "user", properties: [
+                                    new OA\Property(property: "id", type: "integer"),
+                                    new OA\Property(property: "pseudo", type: "string"),
+                                    new OA\Property(property: "email", type: "string"),
+                                    new OA\Property(property: "avatar", type: "string"),
+                                    new OA\Property(property: "date_creation", type: "string", format: "date-time")
+                                ], type: "object")
+                            ],
+                            type: "object"
+                        )),
+                        new OA\Property(property: "user", properties: [
+                            new OA\Property(property: "id", type: "integer"),
+                            new OA\Property(property: "pseudo", type: "string"),
+                            new OA\Property(property: "email", type: "string"),
+                            new OA\Property(property: "avatar", type: "string"),
+                            new OA\Property(property: "date_creation", type: "string", format: "date-time")
+                        ], type: "object")
+                    ],
+                    type: "object"
+                )
+            ),
+            new OA\Response(
+                response: 404,
+                description: "Tweet non trouvé"
+            )
+        ]
+    )]
     public function showByTweet(Tweet $tweet): JsonResponse
     {
         $data = [
@@ -197,15 +236,15 @@ final class CommentController extends AbstractController
     #[Route('/api/comments', name: 'api_comments_create', methods: ['POST'])]
     #[OA\Post(
         path: "/api/comments",
-        description: "Permet de créer un nouveau commentaire sur un tweet",
-        summary: "Crée un nouveau commentaire",
+        description: "Permet de créer un nouveau commentaire",
+        summary: "Création d'un commentaire",
         requestBody: new OA\RequestBody(
-            description: "Données du commentaire à créer",
+            description: "Données pour la création d'un commentaire",
             required: true,
             content: new OA\JsonContent(
                 properties: [
-                    new OA\Property(property: "contenu", description: "Contenu du commentaire", type: "string"),
-                    new OA\Property(property: "tweet_id", description: "ID du tweet associé", type: "integer")
+                    new OA\Property(property: "contenu", type: "string", example: "Contenu du commentaire"),
+                    new OA\Property(property: "tweet_id", type: "integer", example: 1)
                 ],
                 type: "object"
             )
@@ -224,23 +263,11 @@ final class CommentController extends AbstractController
             ),
             new OA\Response(
                 response: 400,
-                description: "Données invalides ou incomplètes",
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: "error", type: "string", example: "Le contenu du commentaire est requis")
-                    ],
-                    type: "object"
-                )
+                description: "Données invalides"
             ),
             new OA\Response(
                 response: 401,
-                description: "Utilisateur non authentifié",
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: "error", type: "string", example: "Utilisateur non authentifié")
-                    ],
-                    type: "object"
-                )
+                description: "Utilisateur non authentifié"
             )
         ]
     )]
@@ -256,6 +283,7 @@ final class CommentController extends AbstractController
         // Récupère l'utilisateur
         $user = $this->getUser();
         $comment->setUser($user);
+        $user->addComment($comment);
 
         $entityManager->persist($comment);
         $entityManager->flush();
@@ -281,7 +309,7 @@ final class CommentController extends AbstractController
         responses: [
             new OA\Response(
                 response: 200,
-                description: "Suppression réussie du commentaire",
+                description: "Commentaire supprimé avec succès",
                 content: new OA\JsonContent(
                     properties: [
                         new OA\Property(property: "message", type: "string", example: "Commentaire supprimé avec succès")
