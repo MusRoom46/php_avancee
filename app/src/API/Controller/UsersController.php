@@ -672,4 +672,67 @@ final class UsersController extends AbstractController
 
         return $this->json(['message' => 'Utilisateur supprimé avec succès']);
     }
+
+    #[Route('/api/users/search/by-pseudo', name: 'api_users_search_by_pseudo', methods: ['GET'])]
+    #[OA\Get(
+        path: "/api/users/search/by-pseudo",
+        description: "Recherche des utilisateurs par pseudo",
+        summary: "Rechercher des utilisateurs",
+        tags: ["Utilisateurs"],
+        parameters: [
+            new OA\Parameter(
+                name: "pseudo",
+                description: "Le pseudo ou une partie du pseudo à rechercher",
+                in: "query",
+                required: true,
+                schema: new OA\Schema(type: "string")
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Liste des utilisateurs correspondants à la recherche",
+                content: new OA\JsonContent(
+                    type: "array",
+                    items: new OA\Items(
+                        properties: [
+                            new OA\Property(property: "id", type: "integer"),
+                            new OA\Property(property: "pseudo", type: "string"),
+                            new OA\Property(property: "email", type: "string"),
+                            new OA\Property(property: "avatar", type: "string")
+                        ],
+                        type: "object"
+                    )
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: "Erreur de requête (paramètre manquant ou invalide)",
+                content: new OA\JsonContent(properties: [
+                    new OA\Property(property: "error", type: "string", example: "Le pseudo à rechercher est obligatoire"),
+                ])
+            )
+        ]
+    )]
+    public function searchByPseudo(Request $request, UsersRepository $usersRepository): JsonResponse
+    {
+        $pseudo = $request->query->get('pseudo');
+
+        if (!$pseudo) {
+            return $this->json(['error' => 'Le pseudo à rechercher est obligatoire'], 400);
+        }
+
+        // Appel au repository pour rechercher les utilisateurs
+        $users = $usersRepository->findByPseudo($pseudo);
+
+        // Retourner les données au format JSON
+        $data = array_map(fn(Users $user) => [
+            'id' => $user->getId(),
+            'pseudo' => $user->getPseudo(),
+            'email' => $user->getEmail(),
+            'avatar' => $user->getAvatar(),
+        ], $users);
+
+        return $this->json($data);
+    }
 }

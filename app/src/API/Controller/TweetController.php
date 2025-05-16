@@ -397,4 +397,109 @@ final class TweetController extends AbstractController
         return $this->json(['message' => 'Tweet supprimé avec succès']);
     }
 
+    #[Route('/api/tweets/search/by-content', name: 'api_tweets_search', methods: ['GET'])]
+    #[OA\Get(
+        path: "/api/tweets/search/by-content",
+        description: "Recherche des tweets contenant une chaîne de caractères spécifique",
+        summary: "Recherche de tweets par contenu",
+        tags: ["Tweets"],
+        parameters: [
+            new OA\Parameter(
+                name: "q",
+                description: "Chaîne de caractères à rechercher dans le contenu des tweets",
+                in: "query",
+                required: true,
+                schema: new OA\Schema(type: "string")
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Liste des tweets correspondant à la recherche",
+                content: new OA\JsonContent(
+                    type: "array",
+                    items: new OA\Items(
+                        properties: [
+                            new OA\Property(property: "id", type: "integer"),
+                            new OA\Property(property: "content", type: "string"),
+                            new OA\Property(property: "author", properties: [
+                                new OA\Property(property: "id", type: "integer"),
+                                new OA\Property(property: "pseudo", type: "string"),
+                                new OA\Property(property: "email", type: "string"),
+                                new OA\Property(property: "avatar", type: "string"),
+                                new OA\Property(property: "date_creation", type: "string", format: "date-time")
+                            ], type: "object"),
+                            new OA\Property(property: "date", type: "string", format: "date-time"),
+                            new OA\Property(property: "likes", type: "object"),
+                            new OA\Property(property: "comments", type: "object")
+                        ],
+                        type: "object"
+                    )
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: "Paramètre de recherche manquant"
+            )
+        ]
+    )]
+    public function search(Request $request, TweetRepository $tweetRepository): JsonResponse
+    {
+        $searchString = $request->query->get('q');
+
+        if (empty($searchString)) {
+            return $this->json(['error' => 'Le paramètre de recherche "q" est requis'], 400);
+        }
+
+        $tweets = $tweetRepository->findByContentContaining($searchString);
+
+        $data = array_map(fn(Tweet $tweet) => [
+            'id' => $tweet->getId(),
+            'content' => $tweet->getContenu(),
+            'author' => [
+                'id' => $tweet->getUser()->getId(),
+                'pseudo' => $tweet->getUser()->getPseudo(),
+                'email' => $tweet->getUser()->getEmail(),
+                'avatar' => $tweet->getUser()->getAvatar(),
+                'date_creation' => $tweet->getUser()->getDateCreation()?->format('Y-m-d H:i:s'),
+            ],
+            'date' => $tweet->getDate()->format('Y-m-d H:i:s'),
+            'likes' => [
+                'count' => count($tweet->getLikes()),
+                'likes' => array_map(fn($like) => [
+                    'id' => $like->getId(),
+                    'author' => [
+                        'id' => $like->getUser()->getId(),
+                        'pseudo' => $like->getUser()->getPseudo(),
+                        'email' => $like->getUser()->getEmail(),
+                        'avatar' => $like->getUser()->getAvatar(),
+                        'date_creation' => $like->getUser()->getDateCreation()->format('Y-m-d H:i:s'),
+                    ],
+                    'date' => $like->getDate()->format('Y-m-d H:i:s'),
+                ], $tweet->getLikes()->toArray())
+            ],
+            'comments' => [
+                'count' => count($tweet->getComments()),
+                'comments' => array_map(fn($comment) => [
+                    'id' => $comment->getId(),
+                    'content' => $comment->getContenu(),
+                    'author' => [
+                        'id' => $comment->getUser()->getId(),
+                        'pseudo' => $comment->getUser()->getPseudo(),
+                        'email' => $comment->getUser()->getEmail(),
+                        'avatar' => $comment->getUser()->getAvatar(),
+                        'date_creation' => $comment->getUser()->getDateCreation()?->format('Y-m-d H:i:s'),
+                    ],
+                    'date' => $comment->getDate()->format('Y-m-d H:i:s'),
+                ], (function () use ($tweet) {
+                    $comments = $tweet->getComments()->toArray(); // Convertir en tableau
+                    usort($comments, fn($a, $b) => $b->getDate() <=> $a->getDate()); // Trier par date décroissante
+                    return $comments; // Retourner le tableau trié
+                })()),
+            ],
+        ], $tweets);
+
+        return $this->json($data);
+    }
+
 }
