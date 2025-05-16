@@ -73,17 +73,14 @@ final class TweetController extends AbstractController
                         'email' => $like->getUser()->getEmail(),
                         'avatar' => $like->getUser()->getAvatar(),
                         'date_creation' => $like->getUser()->getDateCreation()->format('Y-m-d H:i:s'),
-                        'id' => $like->getUser()->getId(),
-                        'pseudo' => $like->getUser()->getPseudo(),
-                        'email' => $like->getUser()->getEmail(),
-                        'avatar' => $like->getUser()->getAvatar(),
-                        'date_creation' => $like->getUser()->getDateCreation()?->format('Y-m-d H:i:s'),
                     ],
                     'date' => $like->getDate()->format('Y-m-d H:i:s'),
                 ], $tweet->getLikes()->toArray())
             ],
             'comments' => [
                 'count' => count($tweet->getComments()),
+
+                // Trier les commentaires par date décroissante avant de les transformer
                 'comments' => array_map(fn($comment) => [
                     'id' => $comment->getId(),
                     'content' => $comment->getContenu(),
@@ -95,7 +92,11 @@ final class TweetController extends AbstractController
                         'date_creation' => $comment->getUser()->getDateCreation()?->format('Y-m-d H:i:s'),
                     ],
                     'date' => $comment->getDate()->format('Y-m-d H:i:s'),
-                ], $tweet->getComments()->toArray()),
+                ], (function () use ($tweet) {
+                    $comments = $tweet->getComments()->toArray(); // Convertir en tableau
+                    usort($comments, fn($a, $b) => $b->getDate() <=> $a->getDate()); // Trier par date décroissante
+                    return $comments; // Retourner le tableau trié
+                })()),
             ],
         ], $tweets);
 
@@ -125,13 +126,13 @@ final class TweetController extends AbstractController
                     properties: [
                         new OA\Property(property: "id", type: "integer"),
                         new OA\Property(property: "content", type: "string"),
-                        new OA\Property(property: "author", type: "object", properties: [
+                        new OA\Property(property: "author", properties: [
                             new OA\Property(property: "id", type: "integer"),
                             new OA\Property(property: "pseudo", type: "string"),
                             new OA\Property(property: "email", type: "string"),
                             new OA\Property(property: "avatar", type: "string"),
                             new OA\Property(property: "date_creation", type: "string", format: "date-time")
-                        ]),
+                        ], type: "object"),
                         new OA\Property(property: "date", type: "string", format: "date-time"),
                         new OA\Property(property: "likes", type: "object"),
                         new OA\Property(property: "comments", type: "object")
@@ -147,6 +148,12 @@ final class TweetController extends AbstractController
     )]
     public function show(Tweet $tweet): JsonResponse
     {
+        // Trier les commentaires du tweet par date décroissante, en utilisant usort
+        $comments = $tweet->getComments()->toArray(); // Convertir en tableau
+        usort($comments, function ($a, $b) {
+            return $b->getDate() <=> $a->getDate(); // Trier par date décroissante
+        });
+
         $data = [
             'id' => $tweet->getId(),
             'content' => $tweet->getContenu(),
@@ -173,7 +180,7 @@ final class TweetController extends AbstractController
                 ], $tweet->getLikes()->toArray())
             ],
             'comments' => [
-                'count' => count($tweet->getComments()),
+                'count' => count($comments),
                 'comments' => array_map(fn($comment) => [
                     'id' => $comment->getId(),
                     'content' => $comment->getContenu(),
@@ -185,7 +192,7 @@ final class TweetController extends AbstractController
                         'date_creation' => $comment->getUser()->getDateCreation()->format('Y-m-d H:i:s'),
                     ],
                     'date' => $comment->getDate()->format('Y-m-d H:i:s'),
-                ], $tweet->getComments()->toArray())
+                ], $comments), // Utiliser le tableau trié des commentaires ici
             ]
         ];
 

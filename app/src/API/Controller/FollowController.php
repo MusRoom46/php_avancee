@@ -29,16 +29,16 @@ final class FollowController extends AbstractController
                         properties: [
                             new OA\Property(property: "id", type: "integer"),
                             new OA\Property(property: "date", type: "string", format: "date-time"),
-                            new OA\Property(property: "user", type: "object", properties: [
+                            new OA\Property(property: "user", properties: [
                                 new OA\Property(property: "id", type: "integer"),
                                 new OA\Property(property: "pseudo", type: "string"),
                                 new OA\Property(property: "email", type: "string")
-                            ]),
-                            new OA\Property(property: "user_suivi", type: "object", properties: [
+                            ], type: "object"),
+                            new OA\Property(property: "user_suivi", properties: [
                                 new OA\Property(property: "id", type: "integer"),
                                 new OA\Property(property: "pseudo", type: "string"),
                                 new OA\Property(property: "email", type: "string")
-                            ])
+                            ], type: "object")
                         ],
                         type: "object"
                     )
