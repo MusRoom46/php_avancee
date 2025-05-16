@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Profile - TweetToast{% endblock %}
+
+{% block body %}
+<h1>Profile</h1>
+<div class="profile">
+    <img src="{{ user.avatar }}" alt="Avatar">
+    <p><strong>Pseudo:</strong> {{ user.pseudo }}</p>
+    <p><strong>Email:</strong> {{ user.email }}</p>
+    <p><strong>Joined:</strong> {{ user.date_creation|date('Y-m-d') }}</p>
+</div>
+<h2>Your Tweets</h2>
+<div class="tweets">
+    {% for tweet in user.tweets %}
+        <div class="tweet">
+            <p>{{ tweet.date|date('Y-m-d H:i') }}</p>
+            <p>{{ tweet.contenu }}</p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

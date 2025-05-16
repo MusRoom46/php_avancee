@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Timeline - TweetToast{% endblock %}
+
+{% block body %}
+<h1>Timeline</h1>
+<div class="tweets">
+    {% for tweet in tweets %}
+        <div class="tweet">
+            <p><strong>{{ tweet.user.pseudo }}</strong> - {{ tweet.date|date('Y-m-d H:i') }}</p>
+            <p>{{ tweet.contenu }}</p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
