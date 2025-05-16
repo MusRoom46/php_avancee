@@ -7,31 +7,37 @@
 <div class="profile">
     <div id="avatar-container">
         <img id="avatar-preview" src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.avatar ?: 'default' }}" alt="Avatar actuel" width="100">
-        <button id="toggle-avatar-selection">Changer avatar</button>
+        {% if user.id == app.session.get('jwt_user_id') %}
+            <button id="toggle-avatar-selection">Changer avatar</button>
+        {% endif %}
     </div>
 
-    <div id="avatar-selection" style="display: none;">
-        <h3>Choisir un nouvel avatar</h3>
-        <div id="avatar-grid">
-            {% set avatarSeeds = [
-                'default', 'cat', 'dog', 'fox', 'robot', 'ghost', 'alien', 'tiger', 'wizard',
-                'ninja', 'pirate', 'unicorn', 'dragon', 'panda', 'zombie', 'vampire', 'owl',
-                'knight', 'cowboy', 'chef', 'astronaut', 'detective', 'witch', 'samurai', 'penguin'
-            ] %}
+    {% if user.id == app.session.get('jwt_user_id') %}
+        <div id="avatar-selection" style="display: none;">
+            <h3>Choisir un nouvel avatar</h3>
+            <div id="avatar-grid">
+                {% set avatarSeeds = [
+                    'default', 'cat', 'dog', 'fox', 'robot', 'ghost', 'alien', 'tiger', 'wizard',
+                    'ninja', 'pirate', 'unicorn', 'dragon', 'panda', 'zombie', 'vampire', 'owl',
+                    'knight', 'cowboy', 'chef', 'astronaut', 'detective', 'witch', 'samurai', 'penguin'
+                ] %}
 
-            {% for seed in avatarSeeds %}
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ seed }}" data-seed="{{ seed }}" class="avatar-option">
-            {% endfor %}
+                {% for seed in avatarSeeds %}
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ seed }}" data-seed="{{ seed }}" class="avatar-option">
+                {% endfor %}
+            </div>
+
+            <form method="POST" action="{{ path('profile_update_avatar') }}">
+                <input type="hidden" name="avatar" id="avatar-input" value="{{ user.avatar ?: 'default' }}">
+                <button type="submit" id="save-avatar">Valider</button>
+            </form>
         </div>
-
-        <form method="POST" action="{{ path('profile_update_avatar') }}">
-            <input type="hidden" name="avatar" id="avatar-input" value="{{ user.avatar ?: 'default' }}">
-            <button type="submit" id="save-avatar">Valider</button>
-        </form>
-    </div>
+    {% endif %}
 
     <p><strong>Pseudo:</strong> {{ user.pseudo }}</p>
-    <p><strong>Email:</strong> {{ user.email }}</p>
+    {% if user.id == app.session.get('jwt_user_id') %}
+        <p><strong>Email:</strong> {{ user.email }}</p>
+    {% endif %}
     <p><strong>Date de création:</strong> {{ user.date_creation|date('Y-m-d') }}</p>
 </div>
 

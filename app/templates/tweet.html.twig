@@ -5,26 +5,28 @@
 {% block body %}
 <h1>Détails du Tweet</h1>
 <div class="tweet-details">
-    <div class="tweet">
-        <p><strong>{{ tweet.author.pseudo }}</strong> - {{ tweet.date|date('Y-m-d H:i') }}</p>
-        <p>{{ tweet.content }}</p>
-        <p>
-            <form method="POST" action="{{ path('view_tweet_like_tweet', {id: tweet.id}) }}" style="display:inline;">
-                <button type="submit" class="btn-icon" title="Liker ce tweet">
-                    <i class="fa-regular fa-heart"></i>
-                </button>
-                {{ tweet.likes.count }}
-            </form>
-            &nbsp;&nbsp;
-            <i class="fa-regular fa-comment"></i> {{ tweet.comments.count }}
-        </p>
-    </div>
+    {% include 'components/tweet_card.html.twig' with { tweet: tweet } %}
 
     <div class="comments-section">
         <h2>Commentaires</h2>
         <ul class="comments">
             {% for comment in tweet.comments.comments %}
-                <li><strong>{{ comment.author.pseudo }}</strong> - <span class="date-comment">{{ comment.date }}</span> : {{ comment.content }}</li>
+                <li>
+                    <strong>
+                        {% if comment.author.id == app.session.get('jwt_user_id') %}
+                            <a href="{{ path('profile') }}" style="color:inherit; text-decoration:none;">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ comment.author.avatar ?: 'default' }}" alt="avatar" class="tweet-avatar">
+                                {{ comment.author.pseudo }}
+                            </a>
+                        {% else %}
+                            <a href="{{ path('profile_by_id', {'id': comment.author.id}) }}" style="color:inherit; text-decoration:none;">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ comment.author.avatar ?: 'default' }}" alt="avatar" class="tweet-avatar">
+                                {{ comment.author.pseudo }}
+                            </a>
+                        {% endif %}
+                    </strong>
+                     - <span class="date-comment">{{ comment.date }}</span> : {{ comment.content }}
+                </li>
             {% else %}
                 <li>Aucun commentaire pour l'instant.</li>
             {% endfor %}
@@ -74,6 +76,10 @@ h1 {
 
 .tweet p {
     margin: 5px 0;
+}
+
+#tweet-actions {
+    display: none;
 }
 
 .tweet p:first-child, .date-comment {

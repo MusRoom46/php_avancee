@@ -111,11 +111,11 @@ class ProfileController extends AbstractController
             $this->addFlash('error', 'Erreur lors de la récupération du profil.');
             return $this->redirectToRoute('timeline');
         }
-        
+
         $user = $response->toArray();
 
         // Appeler l'API pour récupérer les tweets
-        $response = $this->httpClient->request('GET', "http://localhost/api/tweets/users/{$userId}", [
+        $response = $this->httpClient->request('GET', "http://localhost/api/tweets/users/{$id}", [
             'headers' => [
                 'Authorization' => 'Bearer ' . $token, // Ajouter le token dans l'en-tête Authorization
             ],

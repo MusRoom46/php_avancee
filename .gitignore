@@ -10,7 +10,6 @@
 *.lock
 !composer.lock
 docker-compose.override.yml
-/.env
 docker-compose.yaml
 Dockerfile
 /.docker/
