@@ -19,9 +19,34 @@
     {% endif %}
     <main>
         {% block body %}{% endblock %}
+        <a href="#" class="add-tweet-btn" id="open-tweet-modal" title="Ajouter un tweet">
+            <i class="fa-solid fa-plus"></i>
+        </a>
+
+        <div id="tweet-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); z-index:999; justify-content:center; align-items:center;">
+            <form method="POST" action="{{ path('tweet_add') }}" style="background:white; padding:30px; border-radius:10px; min-width:300px; display:flex; flex-direction:column; gap:15px;">
+                <label for="tweet-content">Votre tweet :</label>
+                <input type="text" id="tweet-content" name="content" maxlength="280" required style="padding:8px;">
+                <div style="display:flex; gap:10px; justify-content:flex-end;">
+                    <button type="button" id="close-tweet-modal" style="background:#ccc; border:none; padding:8px 16px; border-radius:5px;">Annuler</button>
+                    <button type="submit" style="background:#1da1f2; color:white; border:none; padding:8px 16px; border-radius:5px;">Valider</button>
+                </div>
+            </form>
+        </div>
     </main>
     {% block style %}{% endblock %}
     {% block javascripts %}{% endblock %}
+
+    <script>
+document.getElementById('open-tweet-modal').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('tweet-modal').style.display = 'flex';
+});
+document.getElementById('close-tweet-modal').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('tweet-modal').style.display = 'none';
+});
+</script>
     <footer>
         <p>&copy; -20ans av. le grille-pain - TweetToast</p>
     </footer>
@@ -76,6 +101,28 @@ main {
 h1 {
     font-size: 1.5rem;
     margin-bottom: 20px;
+}
+
+.add-tweet-btn {
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    width: 56px;
+    height: 56px;
+    background: #1da1f2;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 2.5rem;
+    text-align: center;
+    line-height: 56px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 200;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+.add-tweet-btn:hover {
+    background: #0d8ddb;
+    color: #fff;
 }
 
 /* Pied de page */

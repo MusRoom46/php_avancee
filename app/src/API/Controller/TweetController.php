@@ -260,18 +260,17 @@ final class TweetController extends AbstractController
             ],
             'date' => $tweet->getDate()->format('Y-m-d H:i:s'),
             'likes' => [
-                'count' => count($tweet->getComments()),
-                'likes' => array_map(fn($comment) => [
-                    'id' => $comment->getId(),
-                    'content' => $comment->getContenu(),
+                'count' => count($tweet->getLikes()),
+                'likes' => array_map(fn($like) => [
+                    'id' => $like->getId(),
                     'author' => [
-                        'id' => $comment->getUser()->getId(),
-                        'pseudo' => $comment->getUser()->getPseudo(),
-                        'email' => $comment->getUser()->getEmail(),
-                        'avatar' => $comment->getUser()->getAvatar(),
-                        'date_creation' => $comment->getUser()->getDateCreation()->format('Y-m-d H:i:s'),
+                        'id' => $like->getUser()->getId(),
+                        'pseudo' => $like->getUser()->getPseudo(),
+                        'email' => $like->getUser()->getEmail(),
+                        'avatar' => $like->getUser()->getAvatar(),
+                        'date_creation' => $like->getUser()->getDateCreation()->format('Y-m-d H:i:s'),
                     ],
-                    'date' => $comment->getDate()->format('Y-m-d H:i:s'),
+                    'date' => $like->getDate()->format('Y-m-d H:i:s'),
                 ], $tweet->getLikes()->toArray()),
             ],
             'comments' => [

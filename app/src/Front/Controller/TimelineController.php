@@ -55,41 +55,8 @@ class TimelineController extends AbstractController
         ]);
     }
 
-    #[Route('/tweet/{id}', name: 'tweet_show', methods: ['GET'])]
-    public function showTweet(int $id): Response
-    {
-        // Récupérer le token depuis la session
-        $session = $this->requestStack->getSession();
-        $token = $session->get('jwt_token');
-
-        if (!$token) {
-            $this->addFlash('error', 'Vous devez être connecté pour accéder à cette page.');
-            return $this->redirectToRoute('login'); // Rediriger vers la page de connexion
-        }
-
-        // Appeler l'API pour récupérer les détails du tweet
-        $response = $this->httpClient->request('GET', 'http://localhost/api/tweets/' . $id, [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $token, // Ajouter le token dans l'en-tête Authorization
-            ],
-        ]);
-
-        // Vérifier si la réponse est valide
-        if ($response->getStatusCode() !== 200) {
-            throw new \Exception('Erreur lors de la récupération des détails du tweet depuis l\'API');
-        }
-
-        // Décoder les données JSON
-        $tweet = $response->toArray();
-
-        // Rendre le template avec les détails du tweet
-        return $this->render('tweet.html.twig', [
-            'tweet' => $tweet,
-        ]);
-    }
-
-    #[Route('/like/{id}', name: 'like_tweet', methods: ['POST'])]
-    public function likeTweet(int $id): Response
+    #[Route('/timeline-like/{id}', name: 'timeline_like_tweet', methods: ['POST'])]
+    public function TimelineLikeTweet(int $id): Response
     {
         $session = $this->requestStack->getSession();
         $token = $session->get('jwt_token');
@@ -116,53 +83,75 @@ class TimelineController extends AbstractController
         return new RedirectResponse($url);
     }
 
-    #[Route('/tweet/{id}/comment', name: 'add_comment', methods: ['POST'])]
-    public function addComment(int $id, Request $request): Response
+    #[Route('/search/user', name: 'search_user', methods: ['GET'])]
+    public function search_user(Request $request): Response
     {
         $session = $this->requestStack->getSession();
         $token = $session->get('jwt_token');
+        $query = $request->query->get('q');
 
         if (!$token) {
-            $this->addFlash('error', 'Vous devez être connecté pour commenter.');
+            $this->addFlash('error', 'Vous devez être connecté pour rechercher.');
             return $this->redirectToRoute('login');
         }
 
-        $contenu = $request->request->get('contenu');
-        if (!$contenu) {
-            $this->addFlash('error', 'Le commentaire ne peut pas être vide.');
-            return $this->redirectToRoute('tweet_show', ['id' => $id]);
+        $users = [];
+        if ($query) {
+            $response = $this->httpClient->request('GET', 'http://localhost/api/users/search/by-pseudo', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $token,
+                    'Accept' => 'application/json',
+                ],
+                'query' => [
+                    'pseudo' => $query,
+                ],
+            ]);
+            if ($response->getStatusCode() === 200) {
+                $users = $response->toArray();
+            } else {
+                $this->addFlash('error', 'Aucun utilisateur trouvé.');
+            }
         }
 
-        // Appel à l'API pour ajouter le commentaire
-        $response = $this->httpClient->request('POST', 'http://localhost/api/comments', [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $token,
-                'Accept' => 'application/json',
-            ],
-            'json' => [
-                'contenu' => $contenu,
-                'tweet_id' => $id,
-            ],
+        return $this->render('search_user.html.twig', [
+            'users' => $users,
+            'query' => $query,
         ]);
+    }
 
-        if ($response->getStatusCode() === 201) {
-            $this->addFlash('success', 'Commentaire ajouté avec succès.');
-        } else {
-            $this->addFlash('error', 'Erreur lors de l\'ajout du commentaire.');
+    #[Route('/search/tweet', name: 'search_tweet', methods: ['GET'])]
+    public function search_tweet(Request $request): Response
+    {
+        $session = $this->requestStack->getSession();
+        $token = $session->get('jwt_token');
+        $query = $request->query->get('q');
+
+        if (!$token) {
+            $this->addFlash('error', 'Vous devez être connecté pour rechercher.');
+            return $this->redirectToRoute('login');
         }
 
-        return $this->redirectToRoute('tweet_show', ['id' => $id]);
-    }
+        $tweets = [];
+        if ($query) {
+            $response = $this->httpClient->request('GET', 'http://localhost/api/tweets/search/by-content', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $token,
+                    'Accept' => 'application/json',
+                ],
+                'query' => [
+                    'q' => $query,
+                ],
+            ]);
+            if ($response->getStatusCode() === 200) {
+                $tweets = $response->toArray();
+            } else {
+                $this->addFlash('error', 'Aucun tweet trouvé.');
+            }
+        }
 
-    #[Route('/', name: 'tweet_show', methods: ['GET'])]
-    public function search_user(int $id): Response
-    {
-        return $this->redirectToRoute('timeline');
-    }
-
-    #[Route('/', name: 'tweet_show', methods: ['GET'])]
-    public function search_tweet(int $id): Response
-    {
-        return $this->redirectToRoute('timeline');
+        return $this->render('search_tweet.html.twig', [
+            'tweets' => $tweets,
+            'query' => $query,
+        ]);
     }
 }

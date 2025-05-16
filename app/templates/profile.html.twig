@@ -38,22 +38,7 @@
 <h2>Tweets</h2>
 <div class="tweets">
     {% for tweet in tweets %}
-        <div class="tweet" id="tweet-{{ tweet.id }}">
-            <p><strong>{{ user.pseudo }}</strong> - {{ tweet.date|date('Y-m-d H:i') }}</p>
-            <p>{{ tweet.content }}</p>
-            <p>
-                <form method="POST" action="{{ path('like_tweet', {id: tweet.id}) }}" style="display:inline;">
-                    <button type="submit" class="btn-icon" title="Liker ce tweet">
-                        <i class="fa-regular fa-heart"></i>
-                    </button>
-                    {{ tweet.likes.count }}
-                </form>
-                &nbsp;&nbsp;
-                <i class="fa-regular fa-comment"></i> {{ tweet.comments.count }}
-            </p>
-            <a href="{{ path('tweet_show', {'id': tweet.id}) }}" class="btn btn-primary">Voir le tweet</a>
-        </div>
-
+        {% include 'components/tweet_card.html.twig' with { tweet: tweet } %}
     {% endfor %}
 </div>
 {% endblock %}
@@ -127,6 +112,32 @@ h1, h2 {
     overflow: hidden;
 }
 
+.tweets {
+    max-width: 600px;
+    margin: 20px auto;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.tweet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.tweet-header p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #657786;
+}
+
+.tweet-header .btn {
+    margin: 0;
+}
+
 .tweet {
     padding: 20px;
     border-bottom: 1px solid #e6ecf0;
@@ -164,18 +175,18 @@ h1, h2 {
     margin-right: 15px;
 }
 
-.tweet p:nth-child(3) i.fa-heart {
+.tweet i.fa-heart {
     vertical-align: middle;
     color: #e0245e; /* Couleur pour le like */
 }
 
-.tweet p:nth-child(3) {
-    vertical-align: middle;
+.tweet i.fa-comment {
+    color: #1da1f2;
+    margin-left: 15px;
 }
 
-.tweet p:nth-child(3) i.fa-comment {
-    color: #1da1f2; /* Couleur pour le commentaire */
-    margin-left: 15px;
+.tweet p:nth-child(3) {
+    vertical-align: middle;
 }
 
 .tweet p:nth-child(3) {
@@ -224,6 +235,40 @@ h1, h2 {
 .avatar-option.selected {
     border: 2px solid #1da1f2;
 }
+
+.btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #e0245e;
+    font-size: 1rem;
+    padding: 0;
+}
+
+.btn-icon:hover {
+    color: #c2184b;
+}
+
+.btn-icon i {
+    margin-right: 5px;
+}
+
+.btn-danger {
+    background-color: #e0245e;
+    color: white;
+    border-radius: 20px;
+    padding: 6px 12px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+    border: none;
+    display: inline-block;
+}
+.btn-danger:hover {
+    background-color: #c2184b;
+    color: white;
+}
+
 </style>
 {% endblock %}
 

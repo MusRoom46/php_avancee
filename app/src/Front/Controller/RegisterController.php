@@ -27,7 +27,7 @@ class RegisterController extends AbstractController
             $data = [
                 'pseudo' => $formData['pseudo'] ?? '',
                 'email' => $formData['email'] ?? '',
-                'mdp' => $formData['password'] ?? '',
+                'mdp' => $formData['mdp'] ?? '',
             ];
             
             // Appeler l'API pour créer un compte

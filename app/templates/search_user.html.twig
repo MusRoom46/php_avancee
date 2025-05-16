@@ -1,0 +1,124 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Recherche utilisateur{% endblock %}
+
+{% block body %}
+<h1>Résultats de la recherche utilisateur</h1>
+<form method="GET" action="{{ path('search_user') }}" class="search-form">
+    <input type="text" name="q" placeholder="Rechercher un utilisateur..." value="{{ query }}" class="search-input">
+    <button type="submit">🔍</button>
+</form>
+
+{% if users is empty %}
+    <p>Aucun utilisateur trouvé.</p>
+{% else %}
+    <ul>
+        {% for user in users %}
+            <li>
+                <strong>{{ user.pseudo }}</strong>
+                {% if user.avatar %}
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.avatar }}" alt="avatar" width="32" height="32">
+                {% endif %}
+                <span>({{ user.email }})</span>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+<a href="{{ path('timeline') }}">Retour à la timeline</a>
+{% endblock %}
+
+{% block style %}
+<style>
+body {
+    background-color: #f5f8fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center;
+    color: #1da1f2;
+    margin: 30px auto 20px auto;
+}
+
+.search-form {
+    display: flex;
+    max-width: 600px;
+    margin: 0 auto 20px auto;
+    background-color: white;
+    border-radius: 30px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.search-input {
+    flex: 1;
+    padding: 10px 15px;
+    border: none;
+    font-size: 0.95rem;
+    border-radius: 30px 0 0 30px;
+}
+
+.search-form button {
+    background-color: #1da1f2;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 0 30px 30px 0;
+    transition: background-color 0.2s;
+}
+
+.search-form button:hover {
+    background-color: #0d8ddb;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+li {
+    background-color: white;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    padding: 15px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+li strong {
+    color: #14171a;
+    font-size: 1rem;
+    flex: 1;
+}
+
+li img {
+    border-radius: 50%;
+    margin: 0 10px;
+}
+
+li span {
+    color: #657786;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+a {
+    display: block;
+    text-align: center;
+    margin: 30px 0;
+    color: #1da1f2;
+    text-decoration: none;
+    font-weight: bold;
+}
+a:hover {
+    text-decoration: underline;
+}
+</style>
+{% endblock %}

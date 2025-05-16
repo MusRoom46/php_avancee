@@ -9,7 +9,12 @@
         <p><strong>{{ tweet.author.pseudo }}</strong> - {{ tweet.date|date('Y-m-d H:i') }}</p>
         <p>{{ tweet.content }}</p>
         <p>
-            <i class="fa-regular fa-heart"></i> {{ tweet.likes.count }}
+            <form method="POST" action="{{ path('view_tweet_like_tweet', {id: tweet.id}) }}" style="display:inline;">
+                <button type="submit" class="btn-icon" title="Liker ce tweet">
+                    <i class="fa-regular fa-heart"></i>
+                </button>
+                {{ tweet.likes.count }}
+            </form>
             &nbsp;&nbsp;
             <i class="fa-regular fa-comment"></i> {{ tweet.comments.count }}
         </p>
@@ -92,8 +97,8 @@ h1 {
 }
 
 .tweet i.fa-heart {
-    color: #e0245e;
-    margin-right: 5px;
+    vertical-align: middle;
+    color: #e0245e; /* Couleur pour le like */
 }
 
 .tweet i.fa-comment {
@@ -170,6 +175,22 @@ h1 {
     background-color: #0d8ddb;
 }
 
+.btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #e0245e;
+    font-size: 1rem;
+    padding: 0;
+}
+
+.btn-icon:hover {
+    color: #c2184b;
+}
+
+.btn-icon i {
+    margin-right: 5px;
+}
 
 .btn.btn-secondary {
     display: inline-block;
