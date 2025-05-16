@@ -59,10 +59,16 @@ final class UsersController extends AbstractController
     #[Route('/api/users/{id}/all', name: 'api_users_show_all_info', methods: ['GET'])]
     public function showAllInfoUser(Users $user): JsonResponse
     {
-        // Vérifier si l'utilisateur est correct
         if (!$user) {
             return $this->json(['message' => 'Utilisateur non trouvé'], 404);
         }
+
+        $tweets = $user->getTweets()->toArray();
+        usort($tweets, fn($a, $b) => $b->getDate() <=> $a->getDate());
+
+        $comments = $user->getComments()->toArray();
+        usort($comments, fn($a, $b) => $b->getDate() <=> $a->getDate());
+
         $data = [
             'id' => $user->getId(),
             'pseudo' => $user->getPseudo(),
@@ -73,7 +79,7 @@ final class UsersController extends AbstractController
                 'id' => $tweet->getId(),
                 'content' => $tweet->getContenu(),
                 'date' => $tweet->getDate()->format('Y-m-d H:i:s'),
-            ], $user->getTweets()->toArray()),
+            ], $tweets),
             'likes' => array_map(fn($like) => [
                 'id' => $like->getId(),
                 'date' => $like->getDate()->format('Y-m-d H:i:s'),
@@ -92,7 +98,7 @@ final class UsersController extends AbstractController
                     'content' => $comment->getTweet()->getContenu(),
                     'date' => $comment->getTweet()->getDate()->format('Y-m-d H:i:s'),
                 ],
-            ], $user->getComments()->toArray()),
+            ], $comments),
             'follows' => array_map(fn($follow) => [
                 'id' => $follow->getId(),
                 'date' => $follow->getDate()->format('Y-m-d H:i:s'),
@@ -313,7 +319,16 @@ final class UsersController extends AbstractController
         // Générer un JWT
         $token = $JWTManager->create($user);
 
-        return $this->json(['token' => $token], 200);
+        // Inclure les informations de l'utilisateur dans la réponse
+        $userData = [
+            'id' => $user->getId(),
+            'pseudo' => $user->getPseudo(),
+            'email' => $user->getEmail(),
+            'avatar' => $user->getAvatar(),
+            'date_creation' => $user->getDateCreation()->format('Y-m-d H:i:s'),
+        ];
+
+        return $this->json(['token' => $token, 'user' => $userData], 200);
     }
 
     #[Route('/api/users/{id}', name: 'api_users_update', methods: ['PUT'])]
