@@ -26,6 +26,14 @@
         </ul>
     </div>
 
+    <div class="comment-form">
+        <form method="POST" action="{{ path('add_comment', {'id': tweet.id}) }}">
+            <textarea name="contenu" required placeholder="Votre commentaire..."></textarea>
+            <button type="submit">Commenter</button>
+        </form>
+    </div>
+
+
     <a href="{{ path('timeline') }}" class="btn btn-secondary">Retour à la timeline</a>
 </div>
 {% endblock %}
@@ -118,6 +126,50 @@ h1 {
 .comments li strong {
     color: #14171a;
 }
+
+.comment-form {
+    margin-top: 20px;
+}
+
+.comment-form form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.comment-form textarea {
+    width: 100%;
+    min-height: 60px;
+    border: 1px solid #ccd6dd;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 0.95rem;
+    resize: vertical;
+    background-color: #f5f8fa;
+}
+
+.comment-form textarea:focus {
+    outline: none;
+    border-color: #1da1f2;
+    background-color: white;
+}
+
+.comment-form button {
+    align-self: flex-end;
+    padding: 8px 16px;
+    background-color: #1da1f2;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.comment-form button:hover {
+    background-color: #0d8ddb;
+}
+
 
 .btn.btn-secondary {
     display: inline-block;

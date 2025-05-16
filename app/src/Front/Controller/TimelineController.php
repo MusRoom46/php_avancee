@@ -4,6 +4,7 @@ namespace App\Front\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -115,5 +116,42 @@ class TimelineController extends AbstractController
         return new RedirectResponse($url);
     }
 
+    #[Route('/tweet/{id}/comment', name: 'add_comment', methods: ['POST'])]
+public function addComment(int $id, Request $request): Response
+{
+    $session = $this->requestStack->getSession();
+    $token = $session->get('jwt_token');
+
+    if (!$token) {
+        $this->addFlash('error', 'Vous devez être connecté pour commenter.');
+        return $this->redirectToRoute('login');
+    }
+
+    $contenu = $request->request->get('contenu');
+    if (!$contenu) {
+        $this->addFlash('error', 'Le commentaire ne peut pas être vide.');
+        return $this->redirectToRoute('tweet_show', ['id' => $id]);
+    }
+
+    // Appel à l'API pour ajouter le commentaire
+    $response = $this->httpClient->request('POST', 'http://localhost/api/comments', [
+        'headers' => [
+            'Authorization' => 'Bearer ' . $token,
+            'Accept' => 'application/json',
+        ],
+        'json' => [
+            'contenu' => $contenu,
+            'tweet_id' => $id,
+        ],
+    ]);
+
+    if ($response->getStatusCode() === 201) {
+        $this->addFlash('success', 'Commentaire ajouté avec succès.');
+    } else {
+        $this->addFlash('error', 'Erreur lors de l\'ajout du commentaire.');
+    }
+
+    return $this->redirectToRoute('tweet_show', ['id' => $id]);
+}
 
 }
