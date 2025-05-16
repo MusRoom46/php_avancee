@@ -17,13 +17,13 @@ final class TweetController extends AbstractController
     #[Route('/api/tweets', name: 'api_tweets_list', methods: ['GET'])]
     #[OA\Get(
         path: "/api/tweets",
-        description: "Retourne un tableau des tweets avec leurs informations",
-        summary: "Récupère la liste des tweets",
+        description: "Retourne un tableau des tweets avec leurs informations, triés par les plus récents",
+        summary: "Récupère la liste des tweets les plus récents",
         tags: ["Tweets"],
         responses: [
             new OA\Response(
                 response: 200,
-                description: "Liste des tweets",
+                description: "Liste des tweets par ordre de date décroissante",
                 content: new OA\JsonContent(
                     type: "array",
                     items: new OA\Items(
@@ -35,11 +35,11 @@ final class TweetController extends AbstractController
                                 new OA\Property(property: "pseudo", type: "string"),
                                 new OA\Property(property: "email", type: "string"),
                                 new OA\Property(property: "avatar", type: "string"),
-                                new OA\Property(property: "date_creation", type: "string", format: "date-time")
+                                new OA\Property(property: "date_creation", type: "string", format: "date-time"),
                             ], type: "object"),
                             new OA\Property(property: "date", type: "string", format: "date-time"),
                             new OA\Property(property: "likes", type: "object"),
-                            new OA\Property(property: "comments", type: "object")
+                            new OA\Property(property: "comments", type: "object"),
                         ],
                         type: "object"
                     )
@@ -49,7 +49,9 @@ final class TweetController extends AbstractController
     )]
     public function list(TweetRepository $tweetRepository): JsonResponse
     {
-        $tweets = $tweetRepository->findAll();
+        // Récupérer les tweets triés par date décroissante
+        $tweets = $tweetRepository->findBy([], ['date' => 'DESC']);
+
         $data = array_map(fn(Tweet $tweet) => [
             'id' => $tweet->getId(),
             'content' => $tweet->getContenu(),
@@ -58,7 +60,7 @@ final class TweetController extends AbstractController
                 'pseudo' => $tweet->getUser()->getPseudo(),
                 'email' => $tweet->getUser()->getEmail(),
                 'avatar' => $tweet->getUser()->getAvatar(),
-                'date_creation' => $tweet->getUser()->getDateCreation()->format('Y-m-d H:i:s'),
+                'date_creation' => $tweet->getUser()->getDateCreation()?->format('Y-m-d H:i:s'),
             ],
             'date' => $tweet->getDate()->format('Y-m-d H:i:s'),
             'likes' => [
@@ -75,7 +77,7 @@ final class TweetController extends AbstractController
                         'pseudo' => $like->getUser()->getPseudo(),
                         'email' => $like->getUser()->getEmail(),
                         'avatar' => $like->getUser()->getAvatar(),
-                        'date_creation' => $like->getUser()->getDateCreation()->format('Y-m-d H:i:s'),
+                        'date_creation' => $like->getUser()->getDateCreation()?->format('Y-m-d H:i:s'),
                     ],
                     'date' => $like->getDate()->format('Y-m-d H:i:s'),
                 ], $tweet->getLikes()->toArray())
@@ -90,11 +92,11 @@ final class TweetController extends AbstractController
                         'pseudo' => $comment->getUser()->getPseudo(),
                         'email' => $comment->getUser()->getEmail(),
                         'avatar' => $comment->getUser()->getAvatar(),
-                        'date_creation' => $comment->getUser()->getDateCreation()->format('Y-m-d H:i:s'),
+                        'date_creation' => $comment->getUser()->getDateCreation()?->format('Y-m-d H:i:s'),
                     ],
                     'date' => $comment->getDate()->format('Y-m-d H:i:s'),
-                ], $tweet->getComments()->toArray())
-            ]
+                ], $tweet->getComments()->toArray()),
+            ],
         ], $tweets);
 
         return $this->json($data);
@@ -263,7 +265,7 @@ final class TweetController extends AbstractController
                         'date_creation' => $comment->getUser()->getDateCreation()->format('Y-m-d H:i:s'),
                     ],
                     'date' => $comment->getDate()->format('Y-m-d H:i:s'),
-                ], $tweet->getComments()->toArray())
+                ], $tweet->getLikes()->toArray()),
             ],
             'comments' => [
                 'count' => count($tweet->getComments()),

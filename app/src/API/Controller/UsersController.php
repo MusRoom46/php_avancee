@@ -316,7 +316,6 @@ final class UsersController extends AbstractController
         return $this->json(['token' => $token], 200);
     }
 
-//todo: verif comme /register
     #[Route('/api/users/{id}', name: 'api_users_update', methods: ['PUT'])]
     #[OA\Put(
         path: "/api/users/{id}",
