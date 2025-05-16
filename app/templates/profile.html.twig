@@ -5,10 +5,10 @@
 {% block body %}
 <h1>Profile</h1>
 <div class="profile">
-    <img src="{{ user.avatar }}" alt="Avatar">
+    <img src="{{ user.avatar ?: '/images/default-avatar.png' }}" alt="" onerror="this.onerror=null; this.src='/images/default-avatar.png';">
     <p><strong>Pseudo:</strong> {{ user.pseudo }}</p>
     <p><strong>Email:</strong> {{ user.email }}</p>
-    <p><strong>Joined:</strong> {{ user.date_creation|date('Y-m-d') }}</p>
+    <p><strong>Date de création:</strong> {{ user.date_creation|date('Y-m-d') }}</p>
 </div>
 <h2>Your Tweets</h2>
 <div class="tweets">
@@ -19,4 +19,83 @@
         </div>
     {% endfor %}
 </div>
+{% endblock %}
+
+{% block style %}
+<style>
+body {
+    background-color: #f5f8fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2 {
+    text-align: center;
+    color: #1da1f2;
+    margin-top: 30px;
+}
+
+.profile {
+    max-width: 600px;
+    margin: 20px auto;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: center;
+}
+
+.profile img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 15px;
+    background-color: #e6ecf0;
+}
+
+/* Affiche une icône fontawesome si l'image échoue à se charger */
+.profile img::before {
+    content: "\f007"; /* FontAwesome user icon */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 100px;
+    color: #657786;
+}
+
+.profile p {
+    font-size: 0.95rem;
+    color: #0f1419;
+    margin: 5px 0;
+}
+
+.profile strong {
+    color: #14171a;
+}
+
+.tweets {
+    max-width: 600px;
+    margin: 20px auto;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.tweet {
+    padding: 15px 20px;
+    border-bottom: 1px solid #e6ecf0;
+}
+
+.tweet p {
+    margin: 5px 0;
+    color: #0f1419;
+}
+
+.tweet p:first-child {
+    font-size: 0.85rem;
+    color: #657786;
+}
+</style>
 {% endblock %}
