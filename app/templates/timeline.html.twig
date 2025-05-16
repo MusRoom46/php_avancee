@@ -3,11 +3,25 @@
 {% block title %}Timeline - TweetToast{% endblock %}
 
 {% block body %}
+<div class="search-bar-container">
+    <form method="GET" action="{{ path('search_user') }}" class="search-form">
+        <input type="text" name="q" placeholder="Rechercher un utilisateur..." class="search-input">
+        <button type="submit">🔍</button>
+    </form>
+    <form method="GET" action="{{ path('search_tweet') }}" class="search-form">
+        <input type="text" name="q" placeholder="Rechercher un tweet..." class="search-input">
+        <button type="submit">🔍</button>
+    </form>
+</div>
+
 <h1>Timeline</h1>
 <div class="tweets">
     {% for tweet in tweets %}
         <div class="tweet" id="tweet-{{ tweet.id }}">
-            <p><strong>{{ tweet.author.pseudo }}</strong> - {{ tweet.date|date('Y-m-d H:i') }}</p>
+            <div class="tweet-header">
+                <p><strong>{{ tweet.author.pseudo }}</strong> - {{ tweet.date|date('Y-m-d H:i') }}</p>
+                <a href="{{ path('tweet_show', {'id': tweet.id}) }}" class="btn btn-primary">Voir le tweet</a>
+            </div>
             <p>{{ tweet.content }}</p>
             <p>
                 <form method="POST" action="{{ path('like_tweet', {id: tweet.id}) }}" style="display:inline;">
@@ -19,9 +33,7 @@
                 &nbsp;&nbsp;
                 <i class="fa-regular fa-comment"></i> {{ tweet.comments.count }}
             </p>
-            <a href="{{ path('tweet_show', {'id': tweet.id}) }}" class="btn btn-primary">Voir le tweet</a>
         </div>
-
     {% endfor %}
 </div>
 {% endblock %}
@@ -49,6 +61,23 @@ h1 {
     border-radius: 10px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     overflow: hidden;
+}
+
+.tweet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.tweet-header p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #657786;
+}
+
+.tweet-header .btn {
+    margin: 0;
 }
 
 .tweet {
@@ -97,7 +126,7 @@ h1 {
     vertical-align: middle;
 }
 
-.tweet p:nth-child(3) i.fa-comment {
+i.fa-comment {
     color: #1da1f2; /* Couleur pour le commentaire */
     margin-left: 15px;
 }
@@ -108,7 +137,6 @@ h1 {
 
 .btn.btn-primary {
     display: inline-block;
-    margin-top: 10px;
     padding: 6px 12px;
     background-color: #1da1f2;
     color: white;
@@ -138,5 +166,46 @@ h1 {
 .btn-icon i {
     margin-right: 5px;
 }
+
+.search-bar-container {
+    max-width: 600px;
+    margin: 30px auto 10px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 20px;
+}
+
+.search-form {
+    display: flex;
+    background-color: white;
+    border-radius: 30px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.search-input {
+    flex: 1;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 30px 0 0 30px;
+    font-size: 0.95rem;
+}
+
+.search-form button {
+    background-color: #1da1f2;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 0 30px 30px 0;
+    transition: background-color 0.2s;
+}
+
+.search-form button:hover {
+    background-color: #0d8ddb;
+}
+
+
 </style>
 {% endblock %}

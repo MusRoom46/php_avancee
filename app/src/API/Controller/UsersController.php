@@ -570,6 +570,69 @@ final class UsersController extends AbstractController
         return $this->json(['message' => 'Utilisateur mis à jour avec succès.'], 200);
     }
 
+    #[Route('/api/users/{id}/avatar', name: 'api_users_update_avatar', methods: ['PUT'])]
+    #[OA\Put(
+        path: "/api/users/{id}/avatar",
+        description: "Met à jour uniquement l'avatar d'un utilisateur.",
+        summary: "Modification de l'avatar d'un utilisateur",
+        requestBody: new OA\RequestBody(
+            description: "Nouveau seed/avatar",
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "avatar", type: "string", example: "dragon")
+                ],
+                type: "object"
+            )
+        ),
+        tags: ["Utilisateurs"],
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                description: "Identifiant unique de l'utilisateur",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "integer")
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Avatar mis à jour avec succès",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "message", type: "string", example: "Avatar mis à jour avec succès")
+                    ],
+                    type: "object"
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: "Requête invalide"
+            ),
+            new OA\Response(
+                response: 404,
+                description: "Utilisateur non trouvé"
+            )
+        ]
+    )]
+    public function updateAvatar(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        Users $user
+    ): JsonResponse {
+        $data = json_decode($request->getContent(), true);
+
+        if (empty($data['avatar'])) {
+            return $this->json(['error' => 'Le champ avatar est obligatoire.'], 400);
+        }
+
+        $user->setAvatar($data['avatar']);
+        $entityManager->flush();
+
+        return $this->json(['message' => 'Avatar mis à jour avec succès'], 200);
+    }
+
     #[Route('/api/users/{id}', name: 'api_users_delete', methods: ['DELETE'])]
     #[OA\Delete(
         path: "/api/users/{id}",

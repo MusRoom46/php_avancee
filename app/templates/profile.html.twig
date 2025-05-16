@@ -5,18 +5,55 @@
 {% block body %}
 <h1>Profile</h1>
 <div class="profile">
-    <img src="{{ user.avatar ?: '/images/default-avatar.png' }}" alt="" onerror="this.onerror=null; this.src='/images/default-avatar.png';">
+    <div id="avatar-container">
+        <img id="avatar-preview" src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.avatar ?: 'default' }}" alt="Avatar actuel" width="100">
+        <button id="toggle-avatar-selection">Changer avatar</button>
+    </div>
+
+    <div id="avatar-selection" style="display: none;">
+        <h3>Choisir un nouvel avatar</h3>
+        <div id="avatar-grid">
+            {% set avatarSeeds = [
+                'default', 'cat', 'dog', 'fox', 'robot', 'ghost', 'alien', 'tiger', 'wizard',
+                'ninja', 'pirate', 'unicorn', 'dragon', 'panda', 'zombie', 'vampire', 'owl',
+                'knight', 'cowboy', 'chef', 'astronaut', 'detective', 'witch', 'samurai', 'penguin'
+            ] %}
+
+            {% for seed in avatarSeeds %}
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ seed }}" data-seed="{{ seed }}" class="avatar-option">
+            {% endfor %}
+        </div>
+
+        <form method="POST" action="{{ path('profile_update_avatar') }}">
+            <input type="hidden" name="avatar" id="avatar-input" value="{{ user.avatar ?: 'default' }}">
+            <button type="submit" id="save-avatar">Valider</button>
+        </form>
+    </div>
+
     <p><strong>Pseudo:</strong> {{ user.pseudo }}</p>
     <p><strong>Email:</strong> {{ user.email }}</p>
     <p><strong>Date de création:</strong> {{ user.date_creation|date('Y-m-d') }}</p>
 </div>
-<h2>Your Tweets</h2>
+
+<h2>Tweets</h2>
 <div class="tweets">
-    {% for tweet in user.tweets %}
-        <div class="tweet">
-            <p>{{ tweet.date|date('Y-m-d H:i') }}</p>
-            <p>{{ tweet.contenu }}</p>
+    {% for tweet in tweets %}
+        <div class="tweet" id="tweet-{{ tweet.id }}">
+            <p><strong>{{ user.pseudo }}</strong> - {{ tweet.date|date('Y-m-d H:i') }}</p>
+            <p>{{ tweet.content }}</p>
+            <p>
+                <form method="POST" action="{{ path('like_tweet', {id: tweet.id}) }}" style="display:inline;">
+                    <button type="submit" class="btn-icon" title="Liker ce tweet">
+                        <i class="fa-regular fa-heart"></i>
+                    </button>
+                    {{ tweet.likes.count }}
+                </form>
+                &nbsp;&nbsp;
+                <i class="fa-regular fa-comment"></i> {{ tweet.comments.count }}
+            </p>
+            <a href="{{ path('tweet_show', {'id': tweet.id}) }}" class="btn btn-primary">Voir le tweet</a>
         </div>
+
     {% endfor %}
 </div>
 {% endblock %}
@@ -55,13 +92,20 @@ h1, h2 {
     background-color: #e6ecf0;
 }
 
-/* Affiche une icône fontawesome si l'image échoue à se charger */
-.profile img::before {
-    content: "\f007"; /* FontAwesome user icon */
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
-    font-size: 100px;
-    color: #657786;
+.profile button {
+    margin: 10px auto;
+    padding: 8px 15px;
+    background-color: #1da1f2;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.profile button:hover {
+    background-color: #0d8ddb;
 }
 
 .profile p {
@@ -79,23 +123,150 @@ h1, h2 {
     margin: 20px auto;
     background-color: white;
     border-radius: 10px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     overflow: hidden;
 }
 
 .tweet {
-    padding: 15px 20px;
+    padding: 20px;
     border-bottom: 1px solid #e6ecf0;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.tweet:hover {
+    background-color: #f0f8ff;
 }
 
 .tweet p {
     margin: 5px 0;
-    color: #0f1419;
 }
 
 .tweet p:first-child {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     color: #657786;
 }
+
+.tweet strong {
+    color: #14171a;
+    font-weight: bold;
+}
+
+.tweet p:nth-child(2) {
+    font-size: 1.1rem;
+    color: #0f1419;
+}
+
+.tweet p:nth-child(3),
+.tweet p:nth-child(4) {
+    font-size: 0.85rem;
+    color: #5b7083;
+    display: inline-block;
+    margin-right: 15px;
+}
+
+.tweet p:nth-child(3) i.fa-heart {
+    vertical-align: middle;
+    color: #e0245e; /* Couleur pour le like */
+}
+
+.tweet p:nth-child(3) {
+    vertical-align: middle;
+}
+
+.tweet p:nth-child(3) i.fa-comment {
+    color: #1da1f2; /* Couleur pour le commentaire */
+    margin-left: 15px;
+}
+
+.tweet p:nth-child(3) {
+    font-size: 0.9rem;
+}
+
+.btn.btn-primary {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 6px 12px;
+    background-color: #1da1f2;
+    color: white;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+#avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 10px;
+    margin: 15px auto;
+    max-width: 400px;
+}
+
+#avatar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    text-align: center;
+}
+
+.avatar-option {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.2s, border 0.2s;
+}
+.avatar-option:hover {
+    transform: scale(1.1);
+}
+.avatar-option.selected {
+    border: 2px solid #1da1f2;
+}
 </style>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+{# Mettre à jour la photo de l'avatar quand on vient sélectionner et la valeur de l'input #}
+document.querySelectorAll('.avatar-option').forEach(function(img) {
+    img.addEventListener('click', function() {
+        // Retire la classe 'selected' de tous les avatars
+        document.querySelectorAll('.avatar-option').forEach(function(i) {
+            i.classList.remove('selected');
+        });
+        // Ajoute la classe 'selected' à l'avatar cliqué
+        img.classList.add('selected');
+        console.log(img.getAttribute('data-seed'));
+        // Met à jour l'input caché avec le seed choisi
+        document.getElementById('avatar-input').value = img.getAttribute('data-seed');
+        // Met à jour l'aperçu de l'avatar
+        document.getElementById('avatar-preview').src = img.src;
+    });
+});
+
+{# Afficher la div pour changer l'avatar #}
+document.addEventListener('DOMContentLoaded', function () {
+    const avatarOptions = document.querySelectorAll('.avatar-option');
+    const avatarInput = document.getElementById('avatar-input');
+    const avatarPreview = document.getElementById('avatar-preview');
+    const avatarSelection = document.getElementById('avatar-selection');
+    const toggleButton = document.getElementById('toggle-avatar-selection');
+
+    toggleButton.addEventListener('click', function () {
+        avatarSelection.style.display = avatarSelection.style.display === 'none' ? 'block' : 'none';
+    });
+
+    avatarOptions.forEach(option => {
+        option.addEventListener('click', function () {
+            avatarOptions.forEach(o => o.classList.remove('selected'));
+            this.classList.add('selected');
+            const selectedSeed = this.getAttribute('data-seed');
+            avatarInput.value = selectedSeed;
+            avatarPreview.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${selectedSeed}`;
+        });
+    });
+});
+</script>
 {% endblock %}

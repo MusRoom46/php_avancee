@@ -28,7 +28,7 @@ class TimelineController extends AbstractController
         // Récupérer le token depuis la session
         $session = $this->requestStack->getSession();
         $token = $session->get('jwt_token');
-
+        
         if (!$token) {
             $this->addFlash('error', 'Vous devez être connecté pour accéder à cette page.');
             return $this->redirectToRoute('login'); // Rediriger vers la page de connexion
@@ -117,41 +117,52 @@ class TimelineController extends AbstractController
     }
 
     #[Route('/tweet/{id}/comment', name: 'add_comment', methods: ['POST'])]
-public function addComment(int $id, Request $request): Response
-{
-    $session = $this->requestStack->getSession();
-    $token = $session->get('jwt_token');
+    public function addComment(int $id, Request $request): Response
+    {
+        $session = $this->requestStack->getSession();
+        $token = $session->get('jwt_token');
 
-    if (!$token) {
-        $this->addFlash('error', 'Vous devez être connecté pour commenter.');
-        return $this->redirectToRoute('login');
-    }
+        if (!$token) {
+            $this->addFlash('error', 'Vous devez être connecté pour commenter.');
+            return $this->redirectToRoute('login');
+        }
 
-    $contenu = $request->request->get('contenu');
-    if (!$contenu) {
-        $this->addFlash('error', 'Le commentaire ne peut pas être vide.');
+        $contenu = $request->request->get('contenu');
+        if (!$contenu) {
+            $this->addFlash('error', 'Le commentaire ne peut pas être vide.');
+            return $this->redirectToRoute('tweet_show', ['id' => $id]);
+        }
+
+        // Appel à l'API pour ajouter le commentaire
+        $response = $this->httpClient->request('POST', 'http://localhost/api/comments', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token,
+                'Accept' => 'application/json',
+            ],
+            'json' => [
+                'contenu' => $contenu,
+                'tweet_id' => $id,
+            ],
+        ]);
+
+        if ($response->getStatusCode() === 201) {
+            $this->addFlash('success', 'Commentaire ajouté avec succès.');
+        } else {
+            $this->addFlash('error', 'Erreur lors de l\'ajout du commentaire.');
+        }
+
         return $this->redirectToRoute('tweet_show', ['id' => $id]);
     }
 
-    // Appel à l'API pour ajouter le commentaire
-    $response = $this->httpClient->request('POST', 'http://localhost/api/comments', [
-        'headers' => [
-            'Authorization' => 'Bearer ' . $token,
-            'Accept' => 'application/json',
-        ],
-        'json' => [
-            'contenu' => $contenu,
-            'tweet_id' => $id,
-        ],
-    ]);
-
-    if ($response->getStatusCode() === 201) {
-        $this->addFlash('success', 'Commentaire ajouté avec succès.');
-    } else {
-        $this->addFlash('error', 'Erreur lors de l\'ajout du commentaire.');
+    #[Route('/', name: 'tweet_show', methods: ['GET'])]
+    public function search_user(int $id): Response
+    {
+        return $this->redirectToRoute('timeline');
     }
 
-    return $this->redirectToRoute('tweet_show', ['id' => $id]);
-}
-
+    #[Route('/', name: 'tweet_show', methods: ['GET'])]
+    public function search_tweet(int $id): Response
+    {
+        return $this->redirectToRoute('timeline');
+    }
 }
