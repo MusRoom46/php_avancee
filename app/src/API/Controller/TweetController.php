@@ -30,13 +30,13 @@ final class TweetController extends AbstractController
                         properties: [
                             new OA\Property(property: "id", type: "integer"),
                             new OA\Property(property: "content", type: "string"),
-                            new OA\Property(property: "author", type: "object", properties: [
+                            new OA\Property(property: "author", properties: [
                                 new OA\Property(property: "id", type: "integer"),
                                 new OA\Property(property: "pseudo", type: "string"),
                                 new OA\Property(property: "email", type: "string"),
                                 new OA\Property(property: "avatar", type: "string"),
                                 new OA\Property(property: "date_creation", type: "string", format: "date-time")
-                            ]),
+                            ], type: "object"),
                             new OA\Property(property: "date", type: "string", format: "date-time"),
                             new OA\Property(property: "likes", type: "object"),
                             new OA\Property(property: "comments", type: "object")
@@ -66,6 +66,11 @@ final class TweetController extends AbstractController
                 'likes' => array_map(fn($like) => [
                     'id' => $like->getId(),
                     'author' => [
+                        'id' => $like->getUser()->getId(),
+                        'pseudo' => $like->getUser()->getPseudo(),
+                        'email' => $like->getUser()->getEmail(),
+                        'avatar' => $like->getUser()->getAvatar(),
+                        'date_creation' => $like->getUser()->getDateCreation()->format('Y-m-d H:i:s'),
                         'id' => $like->getUser()->getId(),
                         'pseudo' => $like->getUser()->getPseudo(),
                         'email' => $like->getUser()->getEmail(),

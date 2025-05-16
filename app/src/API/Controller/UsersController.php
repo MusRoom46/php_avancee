@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class UsersController extends AbstractController
 {
@@ -194,22 +195,53 @@ final class UsersController extends AbstractController
         tags: ["Authentification"],
         responses: [
             new OA\Response(response: 201, description: "Inscription réussie"),
-            new OA\Response(response: 400, description: "Erreur de validation des données")
+            new OA\Response(response: 400, description: "Erreur de validation des données ou conflit avec un utilisateur existant")
         ]
     )]
-    public function register(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): JsonResponse
-    {
+    public function register(
+        Request $request,
+        UserPasswordHasherInterface $passwordHasher,
+        EntityManagerInterface $entityManager,
+        ValidatorInterface $validator,
+        UsersRepository $usersRepository
+    ): JsonResponse {
         $data = json_decode($request->getContent(), true);
-        
-        $user = new Users();
-        $user->setPseudo($data['pseudo']);
-        $user->setEmail($data['email']);
-        $user->setDateCreation(new \DateTime());
 
-        // Hash du mot de passe
+        // Validation des champs présents
+        if (empty($data['pseudo']) || empty($data['email']) || empty($data['mdp'])) {
+            return $this->json(['error' => 'Tous les champs sont obligatoires'], 400);
+        }
+
+        // Vérifier les doublons
+        if ($usersRepository->findOneBy(['pseudo' => $data['pseudo']])) {
+            return $this->json(['error' => 'Le pseudo est déjà pris'], 400);
+        }
+        if ($usersRepository->findOneBy(['email' => $data['email']])) {
+            return $this->json(['error' => 'L\'email est déjà utilisé'], 400);
+        }
+
+        // Création de l'utilisateur
+        $user = new Users();
+        $user->setPseudo($data['pseudo'])
+            ->setEmail($data['email'])
+            ->setMdp($data['mdp'])
+            ->setDateCreation(new \DateTime());
+
+        // Validation avec Validator
+        $errors = $validator->validate($user);
+        if (count($errors) > 0) {
+            $errorMessages = [];
+            foreach ($errors as $error) {
+                $errorMessages[] = $error->getMessage();
+            }
+
+            return $this->json(['error' => implode(', ', $errorMessages)], 400);
+        }
+
         $hashedPassword = $passwordHasher->hashPassword($user, $data['mdp']);
         $user->setMdp($hashedPassword);
 
+        // Sauvegarde en base de données
         $entityManager->persist($user);
         $entityManager->flush();
 
@@ -284,7 +316,7 @@ final class UsersController extends AbstractController
         return $this->json(['token' => $token], 200);
     }
 
-
+//todo: verif comme /register
     #[Route('/api/users/{id}', name: 'api_users_update', methods: ['PUT'])]
     #[OA\Put(
         path: "/api/users/{id}",
@@ -334,18 +366,58 @@ final class UsersController extends AbstractController
             )
         ]
     )]
-    public function update(Request $request, Users $user, EntityManagerInterface $entityManager): JsonResponse
-    {
+    public function update(
+        Request $request,
+        UserPasswordHasherInterface $passwordHasher,
+        EntityManagerInterface $entityManager,
+        ValidatorInterface $validator,
+        UsersRepository $usersRepository,
+        Users $user // Injecter l'utilisateur en fonction de l'ID via ParamConverter
+    ): JsonResponse {
         $data = json_decode($request->getContent(), true);
 
-        $user->setPseudo($data['pseudo'] ?? $user->getPseudo());
-        $user->setEmail($data['email'] ?? $user->getEmail());
-        $user->setMdp($data['mdp'] ?? $user->getPassword());
-        $user->setAvatar($data['avatar'] ?? $user->getAvatar());
+        // Validation des champs présents
+        if (empty($data['pseudo']) || empty($data['email']) || empty($data['mdp'])) {
+            return $this->json(['error' => 'Tous les champs sont obligatoires.'], 400);
+        }
 
+        // Vérifier si le pseudo est utilisé par un autre utilisateur
+        $existingUserWithPseudo = $usersRepository->findOneBy(['pseudo' => $data['pseudo']]);
+        if ($existingUserWithPseudo && $existingUserWithPseudo->getId() !== $user->getId()) {
+            return $this->json(['error' => 'Le pseudo est déjà pris par un autre utilisateur.'], 400);
+        }
+
+        // Vérifier si l'email est utilisé par un autre utilisateur
+        $existingUserWithEmail = $usersRepository->findOneBy(['email' => $data['email']]);
+        if ($existingUserWithEmail && $existingUserWithEmail->getId() !== $user->getId()) {
+            return $this->json(['error' => 'L\'email est déjà utilisé par un autre utilisateur.'], 400);
+        }
+
+        // Mettre à jour les propriétés de l'utilisateur
+        $user->setPseudo($data['pseudo'])
+            ->setEmail($data['email'])
+            ->setAvatar($data['avatar'] ?? $user->getAvatar());
+
+        // Mise à jour du mot de passe avec hachage (si fourni)
+        if (!empty($data['mdp'])) {
+            $hashedPassword = $passwordHasher->hashPassword($user, $data['mdp']);
+            $user->setMdp($hashedPassword);
+        }
+
+        // Valider l'entité utilisateur avec Symfony Validator
+        $errors = $validator->validate($user);
+        if (count($errors) > 0) {
+            $errorMessages = [];
+            foreach ($errors as $error) {
+                $errorMessages[] = $error->getMessage();
+            }
+            return $this->json(['error' => implode(', ', $errorMessages)], 400);
+        }
+
+        // Persister les modifications en base de données
         $entityManager->flush();
 
-        return $this->json(['message' => 'Utilisateur mis à jour avec succès']);
+        return $this->json(['message' => 'Utilisateur mis à jour avec succès.'], 200);
     }
 
     #[Route('/api/users/{id}', name: 'api_users_delete', methods: ['DELETE'])]
