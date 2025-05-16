@@ -8,22 +8,25 @@
 
 </head>
 <body>
-    <header>
-        <nav>
-            <a href="/">Timeline</a>
-            <a href="/profile">Profile</a>
-            <a href="{{ path('logout') }}">Logout</a>
-        </nav>
-    </header>
+    {% if app.request.attributes.get('_route') not in ['login', 'register'] %}
+        <header>
+            <nav>
+                <a href="/"><i class="fa-solid fa-house"></i> Timeline</a>
+                <a href="/profile"><i class="fa-solid fa-user"></i> Profile</a>
+                <a href="{{ path('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            </nav>
+        </header>
+    {% endif %}
     <main>
         {% block body %}{% endblock %}
     </main>
     {% block style %}{% endblock %}
     {% block script %}{% endblock %}
     <footer>
-        <p>&copy; 2023 TweetToast</p>
+        <p>&copy; -20ans av. le grille-pain - TweetToast</p>
     </footer>
 </body>
+
 </html>
 
 <style>

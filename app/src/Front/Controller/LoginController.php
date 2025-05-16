@@ -42,11 +42,15 @@ class LoginController extends AbstractController
             if ($response->getStatusCode() === 200) {
                 $responseData = $response->toArray();
                 $token = $responseData['token'] ?? null;
+                $user_id = $responseData['user']['id'] ?? null;
+                $user_pseudo = $responseData['user']['pseudo'] ?? null;
                 
                 if ($token) {
-                    // Stocker le token dans la session
+                    // Stocker les infos du user dans la session
                     $session = $this->requestStack->getSession();
                     $session->set('jwt_token', $token);
+                    $session->set('jwt_user_id', $user_id);
+                    $session->set('jwt_user_pseudo', $user_pseudo);
 
                     $this->addFlash('success', 'Connexion réussie !');
                     return $this->redirectToRoute('timeline'); // Rediriger vers la page principale
