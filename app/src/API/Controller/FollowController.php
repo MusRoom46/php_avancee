@@ -151,24 +151,38 @@ final class FollowController extends AbstractController
         responses: [
             new OA\Response(
                 response: 200,
-                description: "Follow supprimé avec succès",
+                description: "Utilisateur unfollow avec succès",
                 content: new OA\JsonContent(
                     properties: [
-                        new OA\Property(property: "message", type: "string", example: "Follow supprimé avec succès")
+                        new OA\Property(property: "message", type: "string", example: "Utilisateur unfollow avec succès")
                     ],
                     type: "object"
                 )
             ),
             new OA\Response(
                 response: 404,
-                description: "Follow non trouvé"
+                description: "Utilisateur ou suivi non trouvé"
             )
         ]
     )]
-    public function delete(Follow $follow, EntityManagerInterface $entityManager): JsonResponse
+    public function unfollow(int $id, EntityManagerInterface $entityManager): JsonResponse
     {
         $user = $this->getUser();
-        $userSuivi = $follow->getUserSuivi();
+        $userSuivi = $entityManager->getRepository('App\API\Entity\Users')->find($id);
+
+        if (!$userSuivi) {
+            return $this->json(['message' => 'Utilisateur non trouvé'], 404);
+        }
+
+        // Récupérer l'objet Follow
+        $follow = $entityManager->getRepository('App\API\Entity\Follow')->findOneBy([
+            'user' => $user,
+            'userSuivi' => $userSuivi
+        ]);
+
+        if (!$follow) {
+            return $this->json(['message' => 'Relation de suivi non trouvée'], 404);
+        }
 
         $userSuivi->removeFollower($follow);
         $user->removeFollow($follow);
@@ -176,6 +190,6 @@ final class FollowController extends AbstractController
         $entityManager->remove($follow);
         $entityManager->flush();
 
-        return $this->json(['message' => 'Follow supprimé avec succès']);
+        return $this->json(['message' => 'Utilisateur unfollow avec succès']);
     }
 }
