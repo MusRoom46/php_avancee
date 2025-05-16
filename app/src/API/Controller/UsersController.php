@@ -200,7 +200,7 @@ final class UsersController extends AbstractController
     public function register(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-
+        
         $user = new Users();
         $user->setPseudo($data['pseudo']);
         $user->setEmail($data['email']);

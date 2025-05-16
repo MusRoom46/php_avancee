@@ -1,0 +1,119 @@
+<?php
+
+namespace App\Front\Controller;
+
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+
+
+class TimelineController extends AbstractController
+{
+    private HttpClientInterface $httpClient;
+    private RequestStack $requestStack;
+
+    public function __construct(HttpClientInterface $httpClient, RequestStack $requestStack)
+    {
+        $this->httpClient = $httpClient;
+        $this->requestStack = $requestStack;
+    }
+
+    #[Route('/', name: 'timeline')]
+    public function timeline(): Response
+    {
+        // Récupérer le token depuis la session
+        $session = $this->requestStack->getSession();
+        $token = $session->get('jwt_token');
+
+        if (!$token) {
+            $this->addFlash('error', 'Vous devez être connecté pour accéder à cette page.');
+            return $this->redirectToRoute('login'); // Rediriger vers la page de connexion
+        }
+
+        // Appeler l'API pour récupérer les tweets
+        $response = $this->httpClient->request('GET', 'http://localhost/api/tweets', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token, // Ajouter le token dans l'en-tête Authorization
+            ],
+        ]);
+
+        // Vérifier si la réponse est valide
+        if ($response->getStatusCode() !== 200) {
+            throw new \Exception('Erreur lors de la récupération des tweets depuis l\'API');
+        }
+
+        // Décoder les données JSON
+        $tweets = $response->toArray();
+
+        // Rendre le template avec la variable 'tweets'
+        return $this->render('timeline.html.twig', [
+            'tweets' => $tweets,
+        ]);
+    }
+
+    #[Route('/tweet/{id}', name: 'tweet_show', methods: ['GET'])]
+    public function showTweet(int $id): Response
+    {
+        // Récupérer le token depuis la session
+        $session = $this->requestStack->getSession();
+        $token = $session->get('jwt_token');
+
+        if (!$token) {
+            $this->addFlash('error', 'Vous devez être connecté pour accéder à cette page.');
+            return $this->redirectToRoute('login'); // Rediriger vers la page de connexion
+        }
+
+        // Appeler l'API pour récupérer les détails du tweet
+        $response = $this->httpClient->request('GET', 'http://localhost/api/tweets/' . $id, [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token, // Ajouter le token dans l'en-tête Authorization
+            ],
+        ]);
+
+        // Vérifier si la réponse est valide
+        if ($response->getStatusCode() !== 200) {
+            throw new \Exception('Erreur lors de la récupération des détails du tweet depuis l\'API');
+        }
+
+        // Décoder les données JSON
+        $tweet = $response->toArray();
+
+        // Rendre le template avec les détails du tweet
+        return $this->render('tweet.html.twig', [
+            'tweet' => $tweet,
+        ]);
+    }
+
+    #[Route('/like/{id}', name: 'like_tweet', methods: ['POST'])]
+    public function likeTweet(int $id): Response
+    {
+        $session = $this->requestStack->getSession();
+        $token = $session->get('jwt_token');
+
+        if (!$token) {
+            $this->addFlash('error', 'Vous devez être connecté pour liker un tweet.');
+            return $this->redirectToRoute('login');
+        }
+
+        // Appel API pour liker
+        $response = $this->httpClient->request('POST', "http://localhost/api/tweets/{$id}/like", [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token,
+                'Accept' => 'application/json',
+            ],
+        ]);
+
+        if ($response->getStatusCode() !== 200) {
+            $this->addFlash('error', 'Erreur lors de l\'ajout du like.');
+        }
+
+        // Rediriger vers la timeline avec un fragment
+        $url = $this->generateUrl('timeline') . '#tweet-' . $id;
+        return new RedirectResponse($url);
+    }
+
+
+}

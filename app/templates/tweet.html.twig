@@ -1,0 +1,138 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tweet - {{ tweet.author.pseudo }}{% endblock %}
+
+{% block body %}
+<h1>Détails du Tweet</h1>
+<div class="tweet-details">
+    <div class="tweet">
+        <p><strong>{{ tweet.author.pseudo }}</strong> - {{ tweet.date|date('Y-m-d H:i') }}</p>
+        <p>{{ tweet.content }}</p>
+        <p>
+            <i class="fa-regular fa-heart"></i> {{ tweet.likes.count }}
+            &nbsp;&nbsp;
+            <i class="fa-regular fa-comment"></i> {{ tweet.comments.count }}
+        </p>
+    </div>
+
+    <div class="comments-section">
+        <h2>Commentaires</h2>
+        <ul class="comments">
+            {% for comment in tweet.comments.comments %}
+                <li><strong>{{ comment.author.pseudo }}</strong> - <span class="date-comment">{{ comment.date }}</span> : {{ comment.content }}</li>
+            {% else %}
+                <li>Aucun commentaire pour l'instant.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <a href="{{ path('timeline') }}" class="btn btn-secondary">Retour à la timeline</a>
+</div>
+{% endblock %}
+
+{% block style %}
+<style>
+body {
+    background-color: #f5f8fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center;
+    color: #1da1f2;
+    margin-top: 30px;
+}
+
+.tweet-details {
+    max-width: 600px;
+    margin: 20px auto;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    padding: 20px;
+}
+
+.tweet {
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e6ecf0;
+}
+
+.tweet p {
+    margin: 5px 0;
+}
+
+.tweet p:first-child, .date-comment {
+    font-size: 0.9rem;
+    color: #657786;
+}
+
+.tweet strong {
+    color: #14171a;
+    font-weight: bold;
+}
+
+.tweet p:nth-child(2) {
+    font-size: 1.1rem;
+    color: #0f1419;
+}
+
+.tweet p:nth-child(3) {
+    font-size: 0.9rem;
+    color: #5b7083;
+}
+
+.tweet i.fa-heart {
+    color: #e0245e;
+    margin-right: 5px;
+}
+
+.tweet i.fa-comment {
+    color: #1da1f2;
+    margin-left: 15px;
+}
+
+.comments-section {
+    margin-top: 20px;
+}
+
+.comments-section h2 {
+    font-size: 1.1rem;
+    color: #1da1f2;
+    margin-bottom: 10px;
+}
+
+.comments {
+    list-style: none;
+    padding: 0;
+}
+
+.comments li {
+    padding: 8px 0;
+    border-bottom: 1px solid #e6ecf0;
+    font-size: 0.9rem;
+    color: #0f1419;
+}
+
+.comments li strong {
+    color: #14171a;
+}
+
+.btn.btn-secondary {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 6px 12px;
+    background-color: #657786;
+    color: white;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.btn.btn-secondary:hover {
+    background-color: #4a5968;
+}
+</style>
+{% endblock %}
