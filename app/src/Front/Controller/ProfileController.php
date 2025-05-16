@@ -33,7 +33,8 @@ class ProfileController extends AbstractController
 
         // Décoder le token pour récupérer l'id utilisateur (si tu stockes l'id dans le token)
         // Sinon, tu peux stocker l'id dans la session lors du login
-        $userId = $session->get('user_id');
+        $userId = $session->get('jwt_user_id');
+        
         if (!$userId) {
             // Si tu ne stockes pas l'id, il faut le décoder depuis le JWT ici
             // Ou faire une route API qui retourne le profil du "current user" à partir du token
