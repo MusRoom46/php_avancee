@@ -57,6 +57,142 @@ final class UsersController extends AbstractController
     }
 
     #[Route('/api/users/{id}/all', name: 'api_users_show_all_info', methods: ['GET'])]
+    #[OA\Get(
+        path: "/api/users/{id}/all",
+        description: "Retourne toutes les informations liées à un utilisateur spécifique, y compris ses tweets, likes, commentaires, abonnements et followers.",
+        summary: "Récupère toutes les informations d'un utilisateur",
+        tags: ["Utilisateurs"],
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                description: "Identifiant unique de l'utilisateur",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "integer")
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Toutes les informations sur l'utilisateur",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "id", type: "integer"),
+                        new OA\Property(property: "pseudo", type: "string"),
+                        new OA\Property(property: "email", type: "string"),
+                        new OA\Property(property: "avatar", type: "string"),
+                        new OA\Property(property: "date_creation", type: "string", format: "date-time"),
+                        new OA\Property(
+                            property: "tweets",
+                            type: "array",
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: "id", type: "integer"),
+                                    new OA\Property(property: "content", type: "string"),
+                                    new OA\Property(property: "date", type: "string", format: "date-time"),
+                                ],
+                                type: "object"
+                            )
+                        ),
+                        new OA\Property(
+                            property: "likes",
+                            type: "array",
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: "id", type: "integer"),
+                                    new OA\Property(property: "date", type: "string", format: "date-time"),
+                                    new OA\Property(
+                                        property: "tweet",
+                                        properties: [
+                                            new OA\Property(property: "id", type: "integer"),
+                                            new OA\Property(property: "content", type: "string"),
+                                            new OA\Property(property: "date", type: "string", format: "date-time"),
+                                        ],
+                                        type: "object"
+                                    )
+                                ],
+                                type: "object"
+                            )
+                        ),
+                        new OA\Property(
+                            property: "comments",
+                            type: "array",
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: "id", type: "integer"),
+                                    new OA\Property(property: "content", type: "string"),
+                                    new OA\Property(property: "date", type: "string", format: "date-time"),
+                                    new OA\Property(
+                                        property: "tweet",
+                                        properties: [
+                                            new OA\Property(property: "id", type: "integer"),
+                                            new OA\Property(property: "content", type: "string"),
+                                            new OA\Property(property: "date", type: "string", format: "date-time"),
+                                        ],
+                                        type: "object"
+                                    )
+                                ],
+                                type: "object"
+                            )
+                        ),
+                        new OA\Property(
+                            property: "follows",
+                            type: "array",
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: "id", type: "integer"),
+                                    new OA\Property(property: "date", type: "string", format: "date-time"),
+                                    new OA\Property(
+                                        property: "user_suivi",
+                                        properties: [
+                                            new OA\Property(property: "id", type: "integer"),
+                                            new OA\Property(property: "pseudo", type: "string"),
+                                            new OA\Property(property: "email", type: "string"),
+                                        ],
+                                        type: "object"
+                                    )
+                                ],
+                                type: "object"
+                            )
+                        ),
+                        new OA\Property(
+                            property: "followers",
+                            type: "array",
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: "id", type: "integer"),
+                                    new OA\Property(property: "date", type: "string", format: "date-time"),
+                                    new OA\Property(
+                                        property: "user",
+                                        properties: [
+                                            new OA\Property(property: "id", type: "integer"),
+                                            new OA\Property(property: "pseudo", type: "string"),
+                                            new OA\Property(property: "email", type: "string"),
+                                        ],
+                                        type: "object"
+                                    )
+                                ],
+                                type: "object"
+                            )
+                        ),
+                        new OA\Property(property: "tweets_count", type: "integer"),
+                        new OA\Property(property: "likes_count", type: "integer"),
+                        new OA\Property(property: "comments_count", type: "integer"),
+                        new OA\Property(property: "follows_count", type: "integer"),
+                        new OA\Property(property: "followers_count", type: "integer"),
+                    ],
+                    type: "object"
+                )
+            ),
+            new OA\Response(
+                response: 404,
+                description: "Utilisateur non trouvé",
+                content: new OA\JsonContent(properties: [
+                    new OA\Property(property: "message", type: "string", example: "Utilisateur non trouvé")
+                ])
+            )
+        ]
+    )]
     public function showAllInfoUser(Users $user): JsonResponse
     {
         if (!$user) {
