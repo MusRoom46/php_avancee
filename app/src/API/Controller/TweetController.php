@@ -248,6 +248,10 @@ final class TweetController extends AbstractController
     public function showTweetByUser(Users $user): JsonResponse
     {
         $tweets = $user->getTweets()->toArray();
+        usort($tweets, function ($a, $b) {
+            return $b->getDate() <=> $a->getDate(); // Trier par date décroissante
+        });
+
         $data = array_map(fn(Tweet $tweet) => [
             'id' => $tweet->getId(),
             'content' => $tweet->getContenu(),
