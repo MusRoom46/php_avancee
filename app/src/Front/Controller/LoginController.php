@@ -2,6 +2,7 @@
 
 namespace App\Front\Controller;
 
+use App\Front\Form\LoginType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,14 +24,16 @@ class LoginController extends AbstractController
     #[Route('/login', name: 'login', methods: ['GET', 'POST'])]
     public function login(Request $request): Response
     {
-        if ($request->isMethod('POST')) {
-            // Récupérer les données du formulaire
-            $formData = $request->request->all();
+        $form = $this->createForm(LoginType::class);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $formData = $form->getData();
 
             // Préparer les données pour l'API
             $data = [
-                'email' => $formData['email'] ?? '',
-                'password' => $formData['password'] ?? '',
+                'email' => $formData['email'],
+                'password' => $formData['password'],
             ];
 
             // Appeler l'API pour se connecter
@@ -44,7 +47,7 @@ class LoginController extends AbstractController
                 $token = $responseData['token'] ?? null;
                 $user_id = $responseData['user']['id'] ?? null;
                 $user_pseudo = $responseData['user']['pseudo'] ?? null;
-                
+
                 if ($token) {
                     // Stocker les infos du user dans la session
                     $session = $this->requestStack->getSession();
@@ -57,11 +60,19 @@ class LoginController extends AbstractController
                 }
             }
 
-            $this->addFlash('error', 'Erreur lors de la connexion : ' . $response->getContent(false));
+            // Si l'API renvoie une erreur, on l'ajoute au formulaire
+            $responseData = json_decode($response->getContent(false), true);
+            if (isset($responseData['message'])) {
+                $form->addError(new \Symfony\Component\Form\FormError($responseData['message']));
+            } else {
+                $this->addFlash('error', 'Erreur lors de la connexion : ' . $response->getContent(false));
+            }
         }
 
         // Afficher le formulaire de connexion
-        return $this->render('login.html.twig');
+        return $this->render('login.html.twig', [
+            'form' => $form->createView(),
+        ]);
     }
 
     #[Route('/logout', name: 'logout', methods: ['GET'])]
