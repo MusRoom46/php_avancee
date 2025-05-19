@@ -15,11 +15,20 @@
     <ul>
         {% for user in users %}
             <li>
-                <strong>{{ user.pseudo }}</strong>
-                {% if user.avatar %}
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.avatar }}" alt="avatar" width="32" height="32">
-                {% endif %}
-                <span>({{ user.email }})</span>
+                <strong>
+                    {% if user.id == app.session.get('jwt_user_id') %}
+                        <a href="{{ path('profile') }}" style="color:inherit; text-decoration:none;">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.avatar ?: 'default' }}" alt="avatar" class="tweet-avatar">
+                            {{ user.pseudo }}
+                        </a>
+                    {% else %}
+                        <a href="{{ path('profile_by_id', {'id': user.id}) }}" style="color:inherit; text-decoration:none;">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.avatar ?: 'default' }}" alt="avatar" class="tweet-avatar">
+                            {{ user.pseudo }}
+                        </a>
+                    {% endif %}
+                </strong>
+                <span>{{ user.email }}</span>
             </li>
         {% endfor %}
     </ul>
@@ -74,6 +83,53 @@ h1 {
     background-color: #0d8ddb;
 }
 
+tweet {
+    padding: 20px;
+    border-bottom: 1px solid #e6ecf0;
+    transition: background-color 0.2s ease-in-out;
+    background: white;
+}
+
+.tweet:hover {
+    background-color: #f0f8ff;
+}
+
+.tweet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.tweet-header p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #657786;
+}
+
+.tweet-header .btn {
+    margin: 0;
+}
+
+.tweet p {
+    margin: 5px 0;
+}
+
+.tweet-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    vertical-align: middle;
+    margin-right: 8px;
+    object-fit: cover;
+    border: 2px solid #e6ecf0;
+}
+
+.tweet strong {
+    color: #14171a;
+    font-weight: bold;
+}
+
 ul {
     list-style-type: none;
     padding: 0;
@@ -108,15 +164,14 @@ li span {
     font-size: 0.9rem;
     flex-shrink: 0;
 }
-
+{# 
 a {
     display: block;
-    text-align: center;
     margin: 30px 0;
     color: #1da1f2;
     text-decoration: none;
     font-weight: bold;
-}
+} #}
 a:hover {
     text-decoration: underline;
 }

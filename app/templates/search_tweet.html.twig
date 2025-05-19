@@ -14,23 +14,7 @@
 {% else %}
     <div class="tweets">
     {% for tweet in tweets %}
-        <div class="tweet" id="tweet-{{ tweet.id }}">
-            <div class="tweet-header">
-                <p><strong>{{ tweet.author.pseudo }}</strong> - {{ tweet.date|date('Y-m-d H:i') }}</p>
-                <a href="{{ path('tweet_show', {'id': tweet.id}) }}" class="btn btn-primary">Voir le tweet</a>
-            </div>
-            <p>{{ tweet.content }}</p>
-            <p>
-                <form method="POST" action="{{ path('like_tweet', {id: tweet.id}) }}" style="display:inline;">
-                    <button type="submit" class="btn-icon" title="Liker ce tweet">
-                        <i class="fa-regular fa-heart"></i>
-                    </button>
-                    {{ tweet.likes.count }}
-                </form>
-                &nbsp;&nbsp;
-                <i class="fa-regular fa-comment"></i> {{ tweet.comments.count }}
-            </p>
-        </div>
+        {% include 'components/tweet_card.html.twig' with { tweet: tweet } %}
     {% endfor %}
 </div>
 {% endif %}

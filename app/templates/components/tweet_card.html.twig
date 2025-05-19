@@ -15,7 +15,8 @@
                     </a>
                 {% endif %}
             </strong>
-             - {{ tweet.date|date('Y-m-d H:i') }}</p>
+             - {{ tweet.date|date('Y-m-d H:i') }}
+        </p>
         <div id="tweet-actions">
             <a href="{{ path('tweet_show', {'id': tweet.id}) }}" class="btn btn-primary" title="Voir le tweet">
                 <i class="fa-regular fa-eye"></i>

@@ -36,6 +36,12 @@ class AppFixtures extends Fixture
             "Encore un commit ‘fix bug’… 🤦",
         ];
 
+        $avatarSeeds = [
+            'default', 'cat', 'dog', 'fox', 'robot', 'ghost', 'alien', 'tiger', 'wizard',
+            'ninja', 'pirate', 'unicorn', 'dragon', 'panda', 'zombie', 'vampire', 'owl',
+            'knight', 'cowboy', 'chef', 'astronaut', 'detective', 'witch', 'samurai', 'penguin'
+        ];
+
         $commentContents = [
             "Très bon point !",
             "Je suis d'accord avec toi.",
@@ -63,6 +69,10 @@ class AppFixtures extends Fixture
                 ->setMdp(password_hash('password', PASSWORD_BCRYPT))
                 ->setAvatar($faker->imageUrl(100, 100, 'people'))
                 ->setDateCreation($faker->dateTimeThisYear);
+                // Assigner un avatar aléatoire
+                $avatarSeed = $faker->randomElement($avatarSeeds);
+                $user->setAvatar($avatarSeed);
+
             $manager->persist($user);
             $users[] = $user;
         }

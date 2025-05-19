@@ -59,8 +59,7 @@
             {% for follow in follows %}
                 <li>
                     <a href="{{ path('profile_by_id', {'id': follow.user_suivi.id}) }}">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ follow.user_suivi.avatar ?: 'default' }}" alt="avatar" width="24" style="vertical-align:middle; border-radius:50%;">
-                        {{ follow.user_suivi.pseudo }}
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ follow.user_suivi.avatar ?: 'default' }}" alt="avatar" width="24" style="vertical-align:middle; border-radius:50%;">{{ follow.user_suivi.pseudo }}
                     </a>
                 </li>
             {% else %}
@@ -74,8 +73,7 @@
             {% for follower in followers %}
                 <li>
                     <a href="{{ path('profile_by_id', {'id': follower.user.id}) }}">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ follower.user.avatar ?: 'default' }}" alt="avatar" width="24" style="vertical-align:middle; border-radius:50%;">
-                        {{ follower.user.pseudo }}
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ follower.user.avatar ?: 'default' }}" alt="avatar" width="24" style="vertical-align:middle; border-radius:50%;">{{ follower.user.pseudo }}
                     </a>
                 </li>
             {% else %}

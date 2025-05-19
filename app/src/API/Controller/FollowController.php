@@ -41,12 +41,14 @@ final class FollowController extends AbstractController
                             new OA\Property(property: "user", properties: [
                                 new OA\Property(property: "id", type: "integer"),
                                 new OA\Property(property: "pseudo", type: "string"),
-                                new OA\Property(property: "email", type: "string")
+                                new OA\Property(property: "email", type: "string"),
+                                new OA\Property(property: "avatar", type: "string")
                             ], type: "object"),
                             new OA\Property(property: "user_suivi", properties: [
                                 new OA\Property(property: "id", type: "integer"),
                                 new OA\Property(property: "pseudo", type: "string"),
-                                new OA\Property(property: "email", type: "string")
+                                new OA\Property(property: "email", type: "string"),
+                                new OA\Property(property: "avatar", type: "string")
                             ], type: "object")
                         ],
                         type: "object"
@@ -67,11 +69,13 @@ final class FollowController extends AbstractController
                 'id' => $follow->getUser()->getId(),
                 'pseudo' => $follow->getUser()->getPseudo(),
                 'email' => $follow->getUser()->getEmail(),
+                'avatar' => $follow->getUser()->getAvatar(),
             ],
             'user_suivi' => [
                 'id' => $follow->getUserSuivi()->getId(),
                 'pseudo' => $follow->getUserSuivi()->getPseudo(),
                 'email' => $follow->getUserSuivi()->getEmail(),
+                'avatar' => $follow->getUserSuivi()->getAvatar(),
             ],
         ], $follows);
 

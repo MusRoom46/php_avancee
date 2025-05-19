@@ -231,7 +231,7 @@ class ProfileController extends AbstractController
         $tweets = $response->toArray();
 
         $isFollowing = false;
-        if ($token && $id != $session->get('jwt_user_id')) {
+        if ($token && $id != $userId) {
             $response = $this->httpClient->request('GET', 'http://localhost/api/follows', [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $token,
@@ -251,6 +251,37 @@ class ProfileController extends AbstractController
                 }
             }
         }
+        $uniqueFollows = [];
+        $seen = [];
+        foreach ($follows as $follow) {
+            $idFollow = is_array($follow['user_suivi']) ? $follow['user_suivi']['id'] : $follow['user_suivi_id'];
+            if (!in_array($idFollow, $seen)) {
+                // Vérifie si le follower est égal à l'utilisateur
+                // dd($id, $idFollow);
+                if ($id == $idFollow) {
+                    continue;
+                }
+                $uniqueFollows[] = $follow;
+                $seen[] = $idFollow;
+            }
+        }
+        $follows = $uniqueFollows;
+
+        $uniqueFollowers = [];
+        $seen = [];
+        foreach ($followers as $follower) {
+            $idFollower = is_array($follower['user']) ? $follower['user']['id'] : $follower['user_id'];
+            if (!in_array($idFollower, $seen)) {
+                // Vérifie si le follower est égal à l'utilisateur
+                // dd($id, $idFollow);
+                if ($id == $idFollower) {
+                    continue;
+                }
+                $uniqueFollowers[] = $follower;
+                $seen[] = $idFollower;
+            }
+        }
+        $followers = $uniqueFollowers;
 
         // Passe-les à la vue :
         return $this->render('profile.html.twig', [
