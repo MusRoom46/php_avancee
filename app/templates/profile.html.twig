@@ -39,6 +39,17 @@
         <p><strong>Email:</strong> {{ user.email }}</p>
     {% endif %}
     <p><strong>Date de création:</strong> {{ user.date_creation|date('Y-m-d') }}</p>
+        {% if user.id != app.session.get('jwt_user_id') %}
+            {% if isFollowing %}
+                <form method="POST" action="{{ path('unfollow_user', {'id': user.id}) }}" style="margin: 15px 0;">
+                    <button type="submit" class="btn btn-danger">Ne plus suivre</button>
+                </form>
+            {% else %}
+                <form method="POST" action="{{ path('follow_user', {'id': user.id}) }}" style="margin: 15px 0;">
+                    <button type="submit" class="btn btn-primary">Suivre</button>
+                </form>
+            {% endif %}
+        {% endif %}
 </div>
 
 <h2>Tweets</h2>
@@ -273,6 +284,22 @@ h1, h2 {
 .btn-danger:hover {
     background-color: #c2184b;
     color: white;
+}
+
+.btn.btn-primary {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 6px 12px;
+    background-color: #1da1f2;
+    color: white;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+    border: none;
+}
+.btn.btn-primary:hover {
+    background-color: #0d8ddb;
 }
 
 </style>

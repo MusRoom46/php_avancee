@@ -1,6 +1,8 @@
-# Symfony Hello World (Docker)
+Projet fait par Kylian LHUISSIER et Valentin BEDET
 
-Ce projet est une démonstration minimaliste d'une application Symfony exécutée dans un environnement Docker. Il expose un simple "Hello World" via une route Symfony.
+# Symfony TweetToast (Docker)
+
+Ce projet est une démonstration minimaliste d'une application Symfony exécutée dans un environnement Docker. Il expose une application "Twitter" minimaliste 
 
 ## 🚀 Prérequis
 
@@ -34,11 +36,15 @@ docker-compose up --build -d
 docker exec -it symfony-php composer install
 ```
 
-### 4. Vérifie que tout fonctionne :
+### 4. Créer des données par défaut
+```bash
+docker exec -it symfony-php php bin/console doctrine:fixtures:load
+```
 
-Accède à l'URL : http://localhost:8000/hello
+### 5. Vérifie que tout fonctionne :
 
-Tu devrais voir : Hello World
+Accède à l'URL : http://localhost:8000
+
 
 📁 Structure des dossiers
 app/ : Code source Symfony

@@ -169,6 +169,7 @@ final class FollowController extends AbstractController
     {
         $user = $this->getUser();
         $userSuivi = $entityManager->getRepository('App\API\Entity\Users')->find($id);
+        // dd($userSuivi);
 
         if (!$userSuivi) {
             return $this->json(['message' => 'Utilisateur non trouvé'], 404);

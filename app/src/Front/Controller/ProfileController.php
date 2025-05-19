@@ -129,9 +129,26 @@ class ProfileController extends AbstractController
         // Décoder les données JSON
         $tweets = $response->toArray();
 
+        $isFollowing = false;
+        if ($token && $id != $session->get('jwt_user_id')) {
+            $response = $this->httpClient->request('GET', 'http://localhost/api/follows', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $token,
+                    'Accept' => 'application/json',
+                ],
+            ]);
+            $follows = $response->toArray();
+            foreach ($follows as $follow) {
+                if ($follow['user_suivi']['id'] == $id) {
+                    $isFollowing = true;
+                    break;
+                }
+            }
+        }
         return $this->render('profile.html.twig', [
             'user' => $user,
             'tweets' => $tweets,
+            'isFollowing' => $isFollowing,
         ]);
     }
 
@@ -201,4 +218,82 @@ class ProfileController extends AbstractController
 
         return $this->redirectToRoute('profile');
     }
+
+    #[Route('/profile/{id}/follow', name: 'follow_user', methods: ['POST'])]
+    public function followUser(int $id): Response
+    {
+        $session = $this->requestStack->getSession();
+        $token = $session->get('jwt_token');
+
+        if (!$token) {
+            $this->addFlash('error', 'Vous devez être connecté.');
+            return $this->redirectToRoute('login');
+        }
+
+        $response = $this->httpClient->request('POST', 'http://localhost/api/follows', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token,
+                'Accept' => 'application/json',
+            ],
+            'json' => [
+                'user_suivi_id' => $id,
+            ],
+        ]);
+
+        if ($response->getStatusCode() === 201) {
+            $this->addFlash('success', 'Vous suivez maintenant cet utilisateur.');
+        } else {
+            $this->addFlash('error', 'Erreur lors du suivi.');
+        }
+
+        return $this->redirectToRoute('profile_by_id', ['id' => $id]);
+    }
+
+    #[Route('/profile/{id}/unfollow', name: 'unfollow_user', methods: ['POST'])]
+    public function unfollowUser(int $id): Response
+    {
+        $session = $this->requestStack->getSession();
+        $token = $session->get('jwt_token');
+
+        if (!$token) {
+            $this->addFlash('error', 'Vous devez être connecté.');
+            return $this->redirectToRoute('login');
+        }
+
+        // On récupère l'id du follow via l'API (ou tu peux le stocker côté front si tu l'as déjà)
+        $response = $this->httpClient->request('GET', 'http://localhost/api/follows', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token,
+                'Accept' => 'application/json',
+            ],
+        ]);
+        $follows = $response->toArray();
+        $followId = null;
+        foreach ($follows as $follow) {
+            if ($follow['user_suivi']['id'] == $id) {
+                $followId = $follow['user_suivi']['id'];
+                break;
+            }
+        }
+        if (!$followId) {
+            $this->addFlash('error', 'Relation de suivi non trouvée.');
+            return $this->redirectToRoute('profile_by_id', ['id' => $id]);
+        }
+
+        $response = $this->httpClient->request('DELETE', "http://localhost/api/follows/{$followId}", [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token,
+                'Accept' => 'application/json',
+            ],
+        ]);
+
+        if ($response->getStatusCode() === 200) {
+            $this->addFlash('success', 'Vous ne suivez plus cet utilisateur.');
+        } else {
+            $this->addFlash('error', 'Erreur lors de l\'unfollow.');
+        }
+
+        return $this->redirectToRoute('profile_by_id', ['id' => $id]);
+    }
+
 }
