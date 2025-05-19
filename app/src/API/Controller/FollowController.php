@@ -13,6 +13,15 @@ use Symfony\Component\Routing\Annotation\Route;
 
 final class FollowController extends AbstractController
 {
+    private function handleApiResponse($response)
+    {
+        if ($response->getStatusCode() === 401) {
+            $this->addFlash('error', 'Votre session a expiré, veuillez vous reconnecter.');
+            return $this->redirectToRoute('login');
+        }
+        return null;
+    }
+    
     #[Route('/api/follows', name: 'api_follows_list', methods: ['GET'])]
     #[OA\Get(
         path: "/api/follows",
@@ -169,8 +178,7 @@ final class FollowController extends AbstractController
     {
         $user = $this->getUser();
         $userSuivi = $entityManager->getRepository('App\API\Entity\Users')->find($id);
-        // dd($userSuivi);
-
+        
         if (!$userSuivi) {
             return $this->json(['message' => 'Utilisateur non trouvé'], 404);
         }

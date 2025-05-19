@@ -22,9 +22,18 @@ class TimelineController extends AbstractController
         $this->requestStack = $requestStack;
     }
 
+    private function handleApiResponse($response)
+    {
+        if ($response->getStatusCode() === 401) {
+            $this->addFlash('error', 'Votre session a expiré, veuillez vous reconnecter.');
+            return $this->redirectToRoute('login');
+        }
+        return null;
+    }
+
     #[Route('/', name: 'timeline')]
     public function timeline(): Response
-    {
+    {   
         // Récupérer le token depuis la session
         $session = $this->requestStack->getSession();
         $token = $session->get('jwt_token');
@@ -40,6 +49,10 @@ class TimelineController extends AbstractController
                 'Authorization' => 'Bearer ' . $token, // Ajouter le token dans l'en-tête Authorization
             ],
         ]);
+
+        if ($redirect = $this->handleApiResponse($response)) {
+            return $redirect;
+        }
 
         // Vérifier si la réponse est valide
         if ($response->getStatusCode() !== 200) {
@@ -74,6 +87,10 @@ class TimelineController extends AbstractController
             ],
         ]);
 
+        if ($redirect = $this->handleApiResponse($response)) {
+            return $redirect;
+        }
+
         if ($response->getStatusCode() !== 200) {
             $this->addFlash('error', 'Erreur lors de l\'ajout du like.');
         }
@@ -106,6 +123,11 @@ class TimelineController extends AbstractController
                     'pseudo' => $query,
                 ],
             ]);
+
+            if ($redirect = $this->handleApiResponse($response)) {
+                return $redirect;
+            }
+
             if ($response->getStatusCode() === 200) {
                 $users = $response->toArray();
             } else {
@@ -142,6 +164,11 @@ class TimelineController extends AbstractController
                     'q' => $query,
                 ],
             ]);
+
+            if ($redirect = $this->handleApiResponse($response)) {
+                return $redirect;
+            }
+
             if ($response->getStatusCode() === 200) {
                 $tweets = $response->toArray();
             } else {

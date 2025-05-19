@@ -32,11 +32,24 @@
     </div>
     <p>{{ tweet.content }}</p>
     <p>
+        {# Détection du like par l'utilisateur connecté #}
+        {% set isLiked = false %}
+        {% for like in tweet.likes.likes %}
+            {% if like.author.id == app.session.get('jwt_user_id') %}
+                {% set isLiked = true %}
+            {% endif %}
+        {% endfor %}
+
         <form method="POST" action="{{ path('timeline_like_tweet', {id: tweet.id}) }}" style="display:inline;">
-            <button type="submit" class="btn-icon" title="Liker ce tweet">
-                <i class="fa-regular fa-heart"></i>
-            </button>
-            
+                {% if isLiked %}
+                    <button type="submit" class="btn-icon" title="Unliker ce tweet">
+                            <i class="fa-solid fa-heart"></i>
+                    </button>
+                {% else %}
+                    <button type="submit" class="btn-icon" title="Liker ce tweet">
+                        <i class="fa-regular fa-heart"></i>
+                    </button>
+                {% endif %}
             {{ tweet.likes.count }}
         </form>
         &nbsp;&nbsp;

@@ -19,13 +19,22 @@ class ProfileController extends AbstractController
         $this->requestStack = $requestStack;
     }
 
+    private function handleApiResponse($response)
+    {
+        if ($response->getStatusCode() === 401) {
+            $this->addFlash('error', 'Votre session a expiré, veuillez vous reconnecter.');
+            return $this->redirectToRoute('login');
+        }
+        return null;
+    }
+
     #[Route('/profile', name: 'profile')]
     public function profile(): Response
     {
         // Récupérer le token depuis la session
         $session = $this->requestStack->getSession();
         $token = $session->get('jwt_token');
-
+        
         if (!$token) {
             $this->addFlash('error', 'Vous devez être connecté pour accéder à votre profil.');
             return $this->redirectToRoute('login');
@@ -49,12 +58,19 @@ class ProfileController extends AbstractController
                 'Accept' => 'application/json',
             ],
         ]);
+        
+        if ($redirect = $this->handleApiResponse($response)) {
+            return $redirect;
+        }
+
         if ($response->getStatusCode() !== 200) {
             $this->addFlash('error', 'Erreur lors de la récupération du profil.');
             return $this->redirectToRoute('timeline');
         }
 
         $user = $response->toArray();
+        $follows = $user['follows'] ?? [];
+        $followers = $user['followers'] ?? [];
 
         // Appeler l'API pour récupérer les tweets
         $response = $this->httpClient->request('GET', "http://localhost/api/tweets/users/{$userId}", [
@@ -63,63 +79,9 @@ class ProfileController extends AbstractController
             ],
         ]);
         
-        // Vérifier si la réponse est valide
-        if ($response->getStatusCode() !== 200) {
-            throw new \Exception('Erreur lors de la récupération des tweets depuis l\'API');
+        if ($redirect = $this->handleApiResponse($response)) {
+            return $redirect;
         }
-
-        // Décoder les données JSON
-        $tweets = $response->toArray();
-
-        return $this->render('profile.html.twig', [
-            'user' => $user,
-            'tweets' => $tweets,
-        ]);
-    }
-
-    #[Route('/profile/{id}', name: 'profile_by_id')]
-    public function profileById(int $id): Response
-    {
-        // Récupérer le token depuis la session
-        $session = $this->requestStack->getSession();
-        $token = $session->get('jwt_token');
-
-        if (!$token) {
-            $this->addFlash('error', 'Vous devez être connecté pour accéder à votre profil.');
-            return $this->redirectToRoute('login');
-        }
-
-        // Décoder le token pour récupérer l'id utilisateur (si tu stockes l'id dans le token)
-        // Sinon, tu peux stocker l'id dans la session lors du login
-        $userId = $session->get('jwt_user_id');
-
-        if (!$userId) {
-            // Si tu ne stockes pas l'id, il faut le décoder depuis le JWT ici
-            // Ou faire une route API qui retourne le profil du "current user" à partir du token
-            $this->addFlash('error', 'Impossible de récupérer votre profil.');
-            return $this->redirectToRoute('timeline');
-        }
-        
-        // Appel à l'API pour récupérer toutes les infos du user
-        $response = $this->httpClient->request('GET', "http://localhost/api/users/{$id}/all", [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $token,
-                'Accept' => 'application/json',
-            ],
-        ]);
-        if ($response->getStatusCode() !== 200) {
-            $this->addFlash('error', 'Erreur lors de la récupération du profil.');
-            return $this->redirectToRoute('timeline');
-        }
-
-        $user = $response->toArray();
-
-        // Appeler l'API pour récupérer les tweets
-        $response = $this->httpClient->request('GET', "http://localhost/api/tweets/users/{$id}", [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $token, // Ajouter le token dans l'en-tête Authorization
-            ],
-        ]);
         
         // Vérifier si la réponse est valide
         if ($response->getStatusCode() !== 200) {
@@ -130,29 +92,37 @@ class ProfileController extends AbstractController
         $tweets = $response->toArray();
 
         $isFollowing = false;
-        if ($token && $id != $session->get('jwt_user_id')) {
+        if ($token && $userId != $session->get('jwt_user_id')) {
             $response = $this->httpClient->request('GET', 'http://localhost/api/follows', [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $token,
                     'Accept' => 'application/json',
                 ],
             ]);
+
+            if ($redirect = $this->handleApiResponse($response)) {
+                return $redirect;
+            }
+
             $follows = $response->toArray();
             foreach ($follows as $follow) {
-                if ($follow['user_suivi']['id'] == $id) {
+                if ($follow['user_suivi']['id'] == $userId) {
                     $isFollowing = true;
                     break;
                 }
             }
         }
+
+        // Passe-les à la vue :
         return $this->render('profile.html.twig', [
             'user' => $user,
             'tweets' => $tweets,
-            'isFollowing' => $isFollowing,
+            'follows' => $follows,
+            'followers' => $followers,
         ]);
     }
 
-
+    
     #[Route('/profile/avatar', name: 'profile_update_avatar', methods: ['POST'])]
     public function updateAvatar(): Response
     {
@@ -183,6 +153,10 @@ class ProfileController extends AbstractController
             ],
         ]);
 
+        if ($redirect = $this->handleApiResponse($response)) {
+            return $redirect;
+        }
+
         if ($response->getStatusCode() === 200) {
             $this->addFlash('success', 'Avatar mis à jour !');
         } else {
@@ -190,6 +164,102 @@ class ProfileController extends AbstractController
         }
 
         return $this->redirectToRoute('profile');
+    }
+
+    
+    #[Route('/profile/{id}', name: 'profile_by_id')]
+    public function profileById(int $id): Response
+    {
+        // Récupérer le token depuis la session
+        $session = $this->requestStack->getSession();
+        $token = $session->get('jwt_token');
+
+        if (!$token) {
+            $this->addFlash('error', 'Vous devez être connecté pour accéder à votre profil.');
+            return $this->redirectToRoute('login');
+        }
+
+        // Décoder le token pour récupérer l'id utilisateur (si tu stockes l'id dans le token)
+        // Sinon, tu peux stocker l'id dans la session lors du login
+        $userId = $session->get('jwt_user_id');
+
+        if (!$userId) {
+            // Si tu ne stockes pas l'id, il faut le décoder depuis le JWT ici
+            // Ou faire une route API qui retourne le profil du "current user" à partir du token
+            $this->addFlash('error', 'Impossible de récupérer votre profil.');
+            return $this->redirectToRoute('timeline');
+        }
+        
+        // Appel à l'API pour récupérer toutes les infos du user
+        $response = $this->httpClient->request('GET', "http://localhost/api/users/{$id}/all", [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token,
+                'Accept' => 'application/json',
+            ],
+        ]);
+
+        if ($redirect = $this->handleApiResponse($response)) {
+            return $redirect;
+        }
+
+        if ($response->getStatusCode() !== 200) {
+            $this->addFlash('error', 'Erreur lors de la récupération du profil.');
+            return $this->redirectToRoute('timeline');
+        }
+
+        $user = $response->toArray();
+        $follows = $user['follows'] ?? [];
+        $followers = $user['followers'] ?? [];
+
+        // Appeler l'API pour récupérer les tweets
+        $response = $this->httpClient->request('GET', "http://localhost/api/tweets/users/{$id}", [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token, // Ajouter le token dans l'en-tête Authorization
+            ],
+        ]);
+        
+        if ($redirect = $this->handleApiResponse($response)) {
+            return $redirect;
+        }
+
+        // Vérifier si la réponse est valide
+        if ($response->getStatusCode() !== 200) {
+            throw new \Exception('Erreur lors de la récupération des tweets depuis l\'API');
+        }
+
+        // Décoder les données JSON
+        $tweets = $response->toArray();
+
+        $isFollowing = false;
+        if ($token && $id != $session->get('jwt_user_id')) {
+            $response = $this->httpClient->request('GET', 'http://localhost/api/follows', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $token,
+                    'Accept' => 'application/json',
+                ],
+            ]);
+
+            if ($redirect = $this->handleApiResponse($response)) {
+                return $redirect;
+            }
+
+            $follows = $response->toArray();
+            foreach ($follows as $follow) {
+                if ($follow['user_suivi']['id'] == $id) {
+                    $isFollowing = true;
+                    break;
+                }
+            }
+        }
+
+        // Passe-les à la vue :
+        return $this->render('profile.html.twig', [
+            'user' => $user,
+            'tweets' => $tweets,
+            'isFollowing' => $isFollowing,
+            'follows' => $follows,
+            'followers' => $followers,
+        ]);
     }
 
     #[Route('/profile-like/{id}', name: 'profile_like_tweet', methods: ['POST'])]
@@ -211,6 +281,10 @@ class ProfileController extends AbstractController
                 'Accept' => 'application/json',
             ],
         ]);
+
+        if ($redirect = $this->handleApiResponse($response)) {
+            return $redirect;
+        }
 
         if ($response->getStatusCode() !== 200) {
             $this->addFlash('error', 'Erreur lors de l\'ajout du like.');
@@ -239,6 +313,10 @@ class ProfileController extends AbstractController
                 'user_suivi_id' => $id,
             ],
         ]);
+
+        if ($redirect = $this->handleApiResponse($response)) {
+            return $redirect;
+        }
 
         if ($response->getStatusCode() === 201) {
             $this->addFlash('success', 'Vous suivez maintenant cet utilisateur.');

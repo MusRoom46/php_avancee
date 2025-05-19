@@ -22,6 +22,15 @@ class TweetController extends AbstractController
         $this->requestStack = $requestStack;
     }
 
+    private function handleApiResponse($response)
+    {
+        if ($response->getStatusCode() === 401) {
+            $this->addFlash('error', 'Votre session a expiré, veuillez vous reconnecter.');
+            return $this->redirectToRoute('login');
+        }
+        return null;
+    }
+
     #[Route('/tweet/{id}', name: 'tweet_show', methods: ['GET'])]
     public function showTweet(int $id): Response
     {
@@ -40,6 +49,10 @@ class TweetController extends AbstractController
                 'Authorization' => 'Bearer ' . $token, // Ajouter le token dans l'en-tête Authorization
             ],
         ]);
+
+        if ($redirect = $this->handleApiResponse($response)) {
+            return $redirect;
+        }
 
         // Vérifier si la réponse est valide
         if ($response->getStatusCode() !== 200) {
@@ -73,6 +86,10 @@ class TweetController extends AbstractController
                 'Accept' => 'application/json',
             ],
         ]);
+
+        if ($redirect = $this->handleApiResponse($response)) {
+            return $redirect;
+        }
 
         if ($response->getStatusCode() !== 200) {
             $this->addFlash('error', 'Erreur lors de l\'ajout du like.');
@@ -109,6 +126,10 @@ class TweetController extends AbstractController
                 'tweet_id' => $id,
             ],
         ]);
+
+        if ($redirect = $this->handleApiResponse($response)) {
+            return $redirect;
+        }
 
         if ($response->getStatusCode() === 201) {
             $this->addFlash('success', 'Commentaire ajouté avec succès.');
@@ -147,6 +168,10 @@ class TweetController extends AbstractController
             ],
         ]);
 
+        if ($redirect = $this->handleApiResponse($response)) {
+            return $redirect;
+        }
+
         if ($response->getStatusCode() === 201) {
             $this->addFlash('success', 'Tweet publié avec succès.');
         } else {
@@ -174,6 +199,10 @@ class TweetController extends AbstractController
                 'Accept' => 'application/json',
             ],
         ]);
+
+        if ($redirect = $this->handleApiResponse($response)) {
+            return $redirect;
+        }
 
         if ($response->getStatusCode() === 204) {
             $this->addFlash('success', 'Tweet supprimé avec succès.');

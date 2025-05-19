@@ -148,6 +148,7 @@ final class UsersController extends AbstractController
                                             new OA\Property(property: "id", type: "integer"),
                                             new OA\Property(property: "pseudo", type: "string"),
                                             new OA\Property(property: "email", type: "string"),
+                                            new OA\Property(property: "avatar", type: "string"),
                                         ],
                                         type: "object"
                                     )
@@ -168,6 +169,7 @@ final class UsersController extends AbstractController
                                             new OA\Property(property: "id", type: "integer"),
                                             new OA\Property(property: "pseudo", type: "string"),
                                             new OA\Property(property: "email", type: "string"),
+                                            new OA\Property(property: "avatar", type: "string"),
                                         ],
                                         type: "object"
                                     )
@@ -242,6 +244,7 @@ final class UsersController extends AbstractController
                     'id' => $follow->getUserSuivi()->getId(),
                     'pseudo' => $follow->getUserSuivi()->getPseudo(),
                     'email' => $follow->getUserSuivi()->getEmail(),
+                    'avatar' => $follow->getUserSuivi()->getAvatar(),
                 ],
             ], $user->getFollows()->toArray()),
             'followers' => array_map(fn($follower) => [
@@ -251,6 +254,7 @@ final class UsersController extends AbstractController
                     'id' => $follower->getUser()->getId(),
                     'pseudo' => $follower->getUser()->getPseudo(),
                     'email' => $follower->getUser()->getEmail(),
+                    'avatar' => $follower->getUser()->getAvatar(),
                 ],
             ], array_filter($user->getFollowers()->toArray(), fn($follow) => $follow->getUserSuivi() === $user)),
             'tweets_count' => count($user->getTweets()),

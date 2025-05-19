@@ -12,6 +12,15 @@
     <button type="submit">Login</button>
 </form>
 <p>Don't have an account? <a href="/register">Register here</a>.</p>
+
+{% for label, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="toast-flash toast-{{ label }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endfor %}
+
 {% endblock %}
 
 {% block style %}
@@ -90,6 +99,29 @@ p a {
 
 p a:hover {
     text-decoration: underline;
+}
+
+.toast-flash {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    min-width: 220px;
+    background: #323232;
+    color: #fff;
+    padding: 16px 24px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 9999;
+    opacity: 0.95;
+    font-size: 1rem;
+    animation: fadeOut 0.5s 2.5s forwards;
+}
+.toast-success { background: #28a745; }
+.toast-error { background: #e0245e; }
+.toast-warning { background: #ffc107; color: #222; }
+
+@keyframes fadeOut {
+    to { opacity: 0; transform: translateY(-20px);}
 }
 </style>
 {% endblock %}

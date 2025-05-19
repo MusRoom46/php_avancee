@@ -52,6 +52,39 @@
         {% endif %}
 </div>
 
+<div class="follow-blocks">
+    <div class="follow-list">
+        <strong>Abonnements ({{ follows|length }})</strong>
+        <ul>
+            {% for follow in follows %}
+                <li>
+                    <a href="{{ path('profile_by_id', {'id': follow.user_suivi.id}) }}">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ follow.user_suivi.avatar ?: 'default' }}" alt="avatar" width="24" style="vertical-align:middle; border-radius:50%;">
+                        {{ follow.user_suivi.pseudo }}
+                    </a>
+                </li>
+            {% else %}
+                <li>Aucun abonnement</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="follow-list">
+        <strong>Abonnés ({{ followers|length }})</strong>
+        <ul>
+            {% for follower in followers %}
+                <li>
+                    <a href="{{ path('profile_by_id', {'id': follower.user.id}) }}">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ follower.user.avatar ?: 'default' }}" alt="avatar" width="24" style="vertical-align:middle; border-radius:50%;">
+                        {{ follower.user.pseudo }}
+                    </a>
+                </li>
+            {% else %}
+                <li>Aucun abonné</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
 <h2>Tweets</h2>
 <div class="tweets">
     {% for tweet in tweets %}
@@ -300,6 +333,31 @@ h1, h2 {
 }
 .btn.btn-primary:hover {
     background-color: #0d8ddb;
+}
+
+.follow-blocks {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+    gap: 30px;
+}
+.follow-list {
+    background: #f8fafd;
+    border-radius: 10px;
+    padding: 10px 20px;
+    min-width: 180px;
+}
+.follow-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.follow-list li {
+    margin: 8px 0;
+    font-size: 0.98rem;
+}
+.follow-list img {
+    margin-right: 8px;
 }
 
 </style>
