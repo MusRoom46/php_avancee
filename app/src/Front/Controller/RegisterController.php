@@ -2,7 +2,10 @@
 
 namespace App\Front\Controller;
 
+use App\API\Entity\Users;
+use App\Front\Form\RegistrationType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -20,16 +23,18 @@ class RegisterController extends AbstractController
     #[Route('/register', name: 'register', methods: ['GET', 'POST'])]
     public function register(Request $request): Response
     {
-        if ($request->isMethod('POST')) {
-            // Récupérer les données du formulaire
-            $formData = $request->request->all();
+        $user = new Users();
+        $form = $this->createForm(RegistrationType::class, $user);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
             // Préparer les données pour l'API
             $data = [
-                'pseudo' => $formData['pseudo'] ?? '',
-                'email' => $formData['email'] ?? '',
-                'mdp' => $formData['mdp'] ?? '',
+                'pseudo' => $user->getPseudo(),
+                'email' => $user->getEmail(),
+                'mdp' => $user->getPassword(),
             ];
-            
+
             // Appeler l'API pour créer un compte
             $response = $this->httpClient->request('POST', 'http://localhost/api/register', [
                 'json' => $data,
@@ -41,10 +46,18 @@ class RegisterController extends AbstractController
                 return $this->redirectToRoute('login'); // Rediriger vers la page de connexion
             }
 
-            $this->addFlash('error', 'Erreur lors de la création du compte : ' . $response->getContent(false));
+            // Si l'API renvoie une erreur, on l'ajoute au formulaire
+            $responseData = json_decode($response->getContent(false), true);
+            if (isset($responseData['error'])) {
+                $form->addError(new FormError($responseData['error']));
+            } else {
+                $this->addFlash('error', 'Erreur lors de la création du compte : ' . $response->getContent(false));
+            }
         }
 
         // Afficher le formulaire d'inscription
-        return $this->render('register.html.twig');
+        return $this->render('register.html.twig', [
+            'form' => $form->createView(),
+        ]);
     }
 }

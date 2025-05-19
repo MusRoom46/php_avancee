@@ -120,6 +120,13 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->mdp;
     }
 
+    public function setPassword(string $password): static
+    {
+        $this->mdp = $password;
+
+        return $this;
+    }
+
     public function setMdp(string $mdp): static
     {
         $this->mdp = $mdp;
